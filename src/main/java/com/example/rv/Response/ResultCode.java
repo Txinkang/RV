@@ -19,7 +19,8 @@ public enum ResultCode {
     R_UserNameIsExist(402,"用户名已存在"),
     R_UserPhoneNumberIsExist(403, "手机号已注册"),
     R_UserEmailIsExist(404,"邮箱已被注册"),
-
+    R_PasswordError(405,"密码错误"),
+    R_UserNotFound(406,"该用户不存在"),
     ;
 
     private int code;

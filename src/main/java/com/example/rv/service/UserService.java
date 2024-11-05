@@ -10,4 +10,11 @@ public interface UserService {
      * @return
      */
     Result register(Users user);
+
+    /**
+     * 账号密码登录
+     * @param user
+     * @return
+     */
+    Result loginAccount(Users user);
 }

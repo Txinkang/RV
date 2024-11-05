@@ -5,10 +5,7 @@ import com.example.rv.pojo.Users;
 import com.example.rv.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Validated
@@ -23,4 +20,8 @@ public class UserController {
         return userService.register(user);
     }
 
+    @PostMapping("/loginAccount")
+    public Result loginAccount(@RequestBody Users user,@RequestHeader("Authorization") String token){
+        return userService.loginAccount(user);
+    }
 }
