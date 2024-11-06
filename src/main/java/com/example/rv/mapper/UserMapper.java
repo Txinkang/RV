@@ -22,4 +22,7 @@ public interface UserMapper {
     @Insert("insert into users (user_name,user_password,user_email,user_phone_number)"+
     "values(#{userName},#{userPassword},#{userEmail},#{userPhoneNumber})")
     int addUser(Users user);
+
+    @Select("select * from users where user_id=#{userId}")
+    Users findByUserId(Integer userId);
 }

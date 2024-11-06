@@ -7,6 +7,7 @@ import com.example.rv.pojo.Users;
 import com.example.rv.service.UserService;
 import com.example.rv.utils.JwtUtil;
 import com.example.rv.utils.Md5Util;
+import com.example.rv.utils.ThreadLocalUtil;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -67,10 +68,32 @@ public class UserServiceImpl implements UserService {
         }
         //存入信息生成token，进行登录
         Map<String,Object> userMap=new HashMap<>();
-        userMap.put("id", user.getUserId());
+        userMap.put("id", queryUser.getUserId());
         String token= JwtUtil.genToken(userMap);
         redisTemplate.opsForValue().set(token,token,30, TimeUnit.SECONDS);
         return new Result(ResultCode.R_Ok,token);
+    }
+
+    @Override
+    public Result logout(String token) {
+        redisTemplate.opsForValue().getAndDelete(token);
+        return new Result(ResultCode.R_Ok);
+    }
+
+    @Override
+    public Result userInfo() {
+        Map<String,Object> userMap=ThreadLocalUtil.get();
+        Integer userId= (Integer) userMap.get("id");
+        Users queryUser=userMapper.findByUserId(userId);
+        queryUser.setUserPassword(null);
+        return new Result(ResultCode.R_Ok,queryUser);
+    }
+
+    @Override
+    public Result updateUserInfo(Users user) {
+        Map<String,Object> userMap=ThreadLocalUtil.get();
+        Integer userId= (Integer) userMap.get("id");
+        return new Result(ResultCode.R_Ok);
     }
 }
 
