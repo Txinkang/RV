@@ -21,6 +21,8 @@ public enum ResultCode {
     R_UserEmailIsExist(404,"邮箱已被注册"),
     R_PasswordError(405,"密码错误"),
     R_UserNotFound(406,"该用户不存在"),
+    R_OldPasswordError(407,"旧密码错误"),
+    R_NewPasswordNotSame(408,"新密码不一致"),
     ;
 
     private int code;

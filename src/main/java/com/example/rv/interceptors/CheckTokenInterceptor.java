@@ -26,6 +26,7 @@ public class CheckTokenInterceptor implements HandlerInterceptor {
         }
         //没过期就从token取数据,存进线程
         Map<String,Object> map= JwtUtil.parseToken(redisToken);
+        map.put("token",redisToken);
         ThreadLocalUtil.set(map);
         return true;
     }

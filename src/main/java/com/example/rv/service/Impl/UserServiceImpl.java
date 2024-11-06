@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
         user.setUserPhoneNumber(Strings.isEmpty(user.getUserPhoneNumber())?null:user.getUserPhoneNumber());
         user.setUserEmail(Strings.isEmpty(user.getUserEmail())?null:user.getUserEmail());
         //写入数据库
-        int rowAffected=userMapper.addUser(user);
+        Integer rowAffected=userMapper.addUser(user);
         return new Result(rowAffected==1?ResultCode.R_Ok:ResultCode.R_Fail);
     }
 
@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
         Map<String,Object> userMap=new HashMap<>();
         userMap.put("id", queryUser.getUserId());
         String token= JwtUtil.genToken(userMap);
-        redisTemplate.opsForValue().set(token,token,30, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(token,token,1, TimeUnit.HOURS);
         return new Result(ResultCode.R_Ok,token);
     }
 
@@ -91,10 +91,52 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Result updateUserInfo(Users user) {
+        //获取userId
         Map<String,Object> userMap=ThreadLocalUtil.get();
         Integer userId= (Integer) userMap.get("id");
-        return new Result(ResultCode.R_Ok);
+        //验证所要修改信息是否已存在
+        if (!Strings.isEmpty(user.getUserName()) && userMapper.checkUserByUserName(user.getUserName())!=null){
+            return new Result(ResultCode.R_UserNameIsExist);
+        }
+        if (!Strings.isEmpty(user.getUserEmail()) && userMapper.checkUserByUserEmail(user.getUserEmail())!=null){
+            return new Result(ResultCode.R_UserEmailIsExist);
+        }
+        if (!Strings.isEmpty(user.getUserPhoneNumber()) && userMapper.checkUserByUserPhoneNumber(user.getUserPhoneNumber())!=null){
+            return new Result(ResultCode.R_UserPhoneNumberIsExist);
+        }
+        //验证通过开始修改
+        Integer rowAffected = userMapper.updateUserByUserId(user,userId);
+        return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_Fail);
     }
+
+    @Override
+    public Result updatePassword(Map<String, String> pwd) {
+        Map<String,Object> map=ThreadLocalUtil.get();
+        Integer userId= (Integer) map.get("id");
+        Users queryUser=userMapper.findByUserId(userId);
+        //验证参数
+        if (Strings.isEmpty(pwd.get("oldPassword")) || Strings.isEmpty(pwd.get("newPassword")) ||Strings.isEmpty(pwd.get("confirmNewPassword"))){
+            return new Result(ResultCode.R_ParamError);
+        }
+        //验证旧密码是否正确
+        if (!Md5Util.getMD5String(pwd.get("oldPassword")).equals(queryUser.getUserPassword())){
+            return new Result(ResultCode.R_OldPasswordError);
+        }
+        //看两次新密码是否一致
+        if (!pwd.get("newPassword").equals(pwd.get("confirmNewPassword"))){
+            return new Result(ResultCode.R_NewPasswordNotSame);
+        }
+        //修改密码
+        String newPassword = Md5Util.getMD5String(pwd.get("newPassword"));
+        Integer rowAffected = userMapper.updatePasswordByUserId(newPassword, userId);
+        //修改完毕，删除token，重新登录
+        if (rowAffected > 0){
+            redisTemplate.opsForValue().getAndDelete((String) map.get("token"));
+            return new Result(ResultCode.R_Ok);
+        }
+        return new Result(ResultCode.R_Fail);
+    }
+
 }
 
 

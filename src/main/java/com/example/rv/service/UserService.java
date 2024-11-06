@@ -3,6 +3,8 @@ package com.example.rv.service;
 import com.example.rv.Response.Result;
 import com.example.rv.pojo.Users;
 
+import java.util.Map;
+
 public interface UserService {
     /**
      * 注册
@@ -20,6 +22,7 @@ public interface UserService {
 
     /**
      * 退出登录
+     *
      * @param token
      * @return Result
      */
@@ -37,4 +40,12 @@ public interface UserService {
      * @return Result
      */
     Result updateUserInfo(Users user);
+
+    /**
+     * 更新密码
+     *
+     * @param pwd
+     * @return Result
+     */
+    Result updatePassword(Map<String, String> pwd);
 }

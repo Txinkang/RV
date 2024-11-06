@@ -4,6 +4,7 @@ import com.example.rv.pojo.Users;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 @Mapper
 public interface UserMapper {
@@ -21,8 +22,18 @@ public interface UserMapper {
 
     @Insert("insert into users (user_name,user_password,user_email,user_phone_number)"+
     "values(#{userName},#{userPassword},#{userEmail},#{userPhoneNumber})")
-    int addUser(Users user);
+    Integer addUser(Users user);
 
     @Select("select * from users where user_id=#{userId}")
     Users findByUserId(Integer userId);
+
+    @Update("update users set " +
+            "user_name = case when #{user.userName} != '' then #{user.userName} else user_name end," +
+            "user_email = case when #{user.userEmail} != '' then #{user.userEmail} else user_email end," +
+            "user_phone_number = case when #{user.userPhoneNumber} != '' then #{user.userPhoneNumber} else user_phone_number end " +
+            "where user_id = #{userId}")
+    Integer updateUserByUserId(Users user, Integer userId);
+
+    @Update("update users set user_password = #{newPassword} where user_id = #{userId}")
+    Integer updatePasswordByUserId(String newPassword, Integer userId);
 }

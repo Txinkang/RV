@@ -14,6 +14,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public Result Exception(Exception e){
+        Result result=new Result(ResultCode.R_Error);
+        result.setMessage("异常："+e.getMessage());
+        return result;
+
+        /*
         // 精简错误信息
         // 正则表达式用于匹配 "default message [内容]"
         Pattern pattern = Pattern.compile("default message \\[(.*?)]");
@@ -23,9 +28,6 @@ public class GlobalExceptionHandler {
         while (matcher.find()) {
             errorMessage+=matcher.group(1)+",";
         }
-
-        Result result=new Result(ResultCode.R_Error);
-        result.setMessage("异常："+errorMessage);
-        return result;
+        */
     }
 }

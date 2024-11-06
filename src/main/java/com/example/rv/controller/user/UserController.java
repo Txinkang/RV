@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @Validated
 @RequestMapping("/user")
@@ -22,11 +24,12 @@ public class UserController {
     }
 
     @PostMapping("/loginAccount")
-    public Result loginAccount(@RequestBody Users user,@RequestHeader("Authorization") String token){
+    public Result loginAccount(@RequestBody Users user){
         return userService.loginAccount(user);
     }
 
     @GetMapping("/logout")
+    //因为拦截器不拦截这个路径，所以需要从请求头取token
     public Result logout(@RequestHeader("Authorization") String token){
         return userService.logout(token);
     }
@@ -37,7 +40,12 @@ public class UserController {
     }
 
     @PatchMapping("/updateUserInfo")
-    public Result updateUserInfo(@RequestBody Users user){
+    public Result updateUserInfo(@RequestBody @Validated Users user){
         return userService.updateUserInfo(user);
+    }
+
+    @PatchMapping("/updatePassword")
+    public Result updatePassword(@RequestBody Map<String,String> pwd){
+        return userService.updatePassword(pwd);
     }
 }
