@@ -20,6 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
         excludePathList.add("/user/register");
         excludePathList.add("/user/loginAccount");
         excludePathList.add("/user/logout");
+        excludePathList.add("/user/getCode");
         registry.addInterceptor(checkTokenInterceptor).excludePathPatterns(excludePathList);
     }
 }

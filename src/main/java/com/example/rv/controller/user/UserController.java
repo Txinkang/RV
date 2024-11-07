@@ -48,4 +48,14 @@ public class UserController {
     public Result updatePassword(@RequestBody Map<String,String> pwd){
         return userService.updatePassword(pwd);
     }
+
+    @PatchMapping("/upgradeRole")
+    public Result upgradeRole(){
+        return userService.upgradeRole();
+    }
+
+    @PostMapping ("/getCode")
+    public Result getCode(@RequestBody @Validated Users user){
+        return userService.getCode(user);
+    }
 }

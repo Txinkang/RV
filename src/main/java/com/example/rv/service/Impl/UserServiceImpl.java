@@ -5,6 +5,7 @@ import com.example.rv.Response.ResultCode;
 import com.example.rv.mapper.UserMapper;
 import com.example.rv.pojo.Users;
 import com.example.rv.service.UserService;
+import com.example.rv.service.common.EmailService;
 import com.example.rv.utils.JwtUtil;
 import com.example.rv.utils.Md5Util;
 import com.example.rv.utils.ThreadLocalUtil;
@@ -24,6 +25,8 @@ public class UserServiceImpl implements UserService {
     private UserMapper userMapper;
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public Result register(Users user) {
@@ -47,7 +50,7 @@ public class UserServiceImpl implements UserService {
         user.setUserEmail(Strings.isEmpty(user.getUserEmail())?null:user.getUserEmail());
         //写入数据库
         Integer rowAffected=userMapper.addUser(user);
-        return new Result(rowAffected==1?ResultCode.R_Ok:ResultCode.R_Fail);
+        return new Result(rowAffected>0?ResultCode.R_Ok:ResultCode.R_UpdateDbFailed);
     }
 
     @Override
@@ -106,13 +109,13 @@ public class UserServiceImpl implements UserService {
         }
         //验证通过开始修改
         Integer rowAffected = userMapper.updateUserByUserId(user,userId);
-        return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_Fail);
+        return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
     }
 
     @Override
     public Result updatePassword(Map<String, String> pwd) {
-        Map<String,Object> map=ThreadLocalUtil.get();
-        Integer userId= (Integer) map.get("id");
+        Map<String,Object> userMap=ThreadLocalUtil.get();
+        Integer userId= (Integer) userMap.get("id");
         Users queryUser=userMapper.findByUserId(userId);
         //验证参数
         if (Strings.isEmpty(pwd.get("oldPassword")) || Strings.isEmpty(pwd.get("newPassword")) ||Strings.isEmpty(pwd.get("confirmNewPassword"))){
@@ -126,15 +129,72 @@ public class UserServiceImpl implements UserService {
         if (!pwd.get("newPassword").equals(pwd.get("confirmNewPassword"))){
             return new Result(ResultCode.R_NewPasswordNotSame);
         }
-        //修改密码
+        //密码加密
         String newPassword = Md5Util.getMD5String(pwd.get("newPassword"));
         Integer rowAffected = userMapper.updatePasswordByUserId(newPassword, userId);
         //修改完毕，删除token，重新登录
-        if (rowAffected > 0){
-            redisTemplate.opsForValue().getAndDelete((String) map.get("token"));
-            return new Result(ResultCode.R_Ok);
+        if (!(rowAffected > 0)){
+            return new Result(ResultCode.R_UpdateDbFailed);
         }
-        return new Result(ResultCode.R_Fail);
+        redisTemplate.opsForValue().getAndDelete((String) userMap.get("token"));
+        return new Result(ResultCode.R_Ok);
+    }
+
+    @Override
+    public Result upgradeRole() {
+        //查询用户是否已升级
+        Map<String,Object> userMap=ThreadLocalUtil.get();
+        Integer userId= (Integer) userMap.get("id");
+        Users queryUser = userMapper.findByUserId(userId);
+        if (queryUser.getUserRole()!=0){
+            return new Result(ResultCode.R_RoleAlreadyUpgrade);
+        }
+        //升级
+        Integer rowAffected=userMapper.updateUserRoleByUserId(userId);
+        return new Result(rowAffected>0?ResultCode.R_Ok:ResultCode.R_UpdateDbFailed);
+    }
+
+    @Override
+    public Result getCode(Users user) {
+        String userPhoneNumber=user.getUserPhoneNumber();
+        String userEmail=user.getUserEmail();
+        Result result=new Result();
+        //两个全为空或全不为空，都不行
+        if ((Strings.isEmpty(userPhoneNumber) && Strings.isEmpty(userEmail)) || (!Strings.isEmpty(userPhoneNumber) && !Strings.isEmpty(userEmail))){
+            return new Result(ResultCode.R_ParamError);
+        }
+        //0是手机号验证，1是邮箱验证
+        int verifyType=Strings.isEmpty(userPhoneNumber)?1:0;
+        switch (verifyType) {
+            case 0 -> {
+                if (userMapper.checkUserByUserPhoneNumber(userPhoneNumber) == null) {
+                    result.setResultCode(ResultCode.R_UserNotFound);
+                    result.setMessage("该手机号不存在");
+                    break;
+                }
+                //反正都是6位数，就用emailService生成了
+                String phoneCode = emailService.generateVerificationCode();
+                //存进redis里，1分钟后过期
+                redisTemplate.opsForValue().set(userPhoneNumber, phoneCode, 1, TimeUnit.MINUTES);
+                result.setResultCode(ResultCode.R_Ok);
+                result.setMessage("成功");
+                result.setData(phoneCode);
+            }
+            case 1 -> {
+                if (userMapper.checkUserByUserEmail(userEmail) == null) {
+                    result.setResultCode(ResultCode.R_UserNotFound);
+                    result.setMessage("该邮箱不存在");
+                    break;
+                }
+                String emailCode = emailService.generateVerificationCode();
+                emailService.sendVerificationCode(userEmail,emailCode);
+                //存进redis里，1分钟后过期
+                redisTemplate.opsForValue().set(userEmail, emailCode, 1, TimeUnit.MINUTES);
+                result.setResultCode(ResultCode.R_Ok);
+                result.setMessage("成功");
+            }
+        }
+        return result;
     }
 
 }

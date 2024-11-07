@@ -48,4 +48,17 @@ public interface UserService {
      * @return Result
      */
     Result updatePassword(Map<String, String> pwd);
+
+    /**
+     * 升级用户权限，由普通用户升级为商家
+     * @return
+     */
+    Result upgradeRole();
+
+    /**
+     * 获取验证码
+     * @param user
+     * @return Result
+     */
+    Result getCode(Users user);
 }

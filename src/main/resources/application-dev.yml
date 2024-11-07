@@ -16,6 +16,23 @@ spring:
       host: localhost
       port: 6379
       database: 1
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: 2912528586@qq.com
+    password: mdzdjwgyvpfedfii
+    properties:
+      mail:
+        smtp:
+          auth: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+          starttls:
+            enable: true
+            required: true
+
+
 mybatis:
   configuration:
     map-underscore-to-camel-case: true

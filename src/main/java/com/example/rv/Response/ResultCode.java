@@ -11,7 +11,7 @@ public enum ResultCode {
     R_TimeOut(600,"超时"),
     //-----------------------系统内部错误(不应该出现但防止出现) 501-600---------------------
     R_WhyNull(501, "不可能NULL的数据为NULL了"),
-    R_UpdateDbFailed(502, "修改数据库失败了"),
+    R_UpdateDbFailed(502, "修改数据库失败"),
 
 
     //-----------------------用户相关错误 401-500---------------------
@@ -23,6 +23,7 @@ public enum ResultCode {
     R_UserNotFound(406,"该用户不存在"),
     R_OldPasswordError(407,"旧密码错误"),
     R_NewPasswordNotSame(408,"新密码不一致"),
+    R_RoleAlreadyUpgrade(409,"权限早已升级"),
     ;
 
     private int code;
