@@ -4,6 +4,7 @@ import com.example.rv.Response.Result;
 import com.example.rv.pojo.Users;
 import com.example.rv.service.UserService;
 import com.example.rv.utils.ThreadLocalUtil;
+import jakarta.validation.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -57,5 +58,10 @@ public class UserController {
     @PostMapping ("/getCode")
     public Result getCode(@RequestBody @Validated Users user){
         return userService.getCode(user);
+    }
+
+    @PostMapping("/loginPhoneNumber")
+    public Result loginPhoneNumber(@RequestBody @NotEmpty Map<String,String> param){
+        return userService.loginPhoneNumber(param);
     }
 }

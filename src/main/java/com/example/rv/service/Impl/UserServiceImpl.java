@@ -54,6 +54,48 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Result getCode(Users user) {
+        String userPhoneNumber=user.getUserPhoneNumber();
+        String userEmail=user.getUserEmail();
+        Result result=new Result();
+        //两个全为空或全不为空，都不行
+        if ((Strings.isEmpty(userPhoneNumber) && Strings.isEmpty(userEmail)) || (!Strings.isEmpty(userPhoneNumber) && !Strings.isEmpty(userEmail))){
+            return new Result(ResultCode.R_ParamError);
+        }
+        //0是手机号验证，1是邮箱验证
+        int verifyType=Strings.isEmpty(userPhoneNumber)?1:0;
+        switch (verifyType) {
+            case 0 -> {
+                if (userMapper.checkUserByUserPhoneNumber(userPhoneNumber) == null) {
+                    result.setResultCode(ResultCode.R_UserNotFound);
+                    result.setMessage("该手机号不存在");
+                    break;
+                }
+                //反正都是6位数，就用emailService生成了
+                String phoneCode = emailService.generateVerificationCode();
+                //存进redis里，1分钟后过期
+                redisTemplate.opsForValue().set(userPhoneNumber, phoneCode, 1, TimeUnit.MINUTES);
+                result.setResultCode(ResultCode.R_Ok);
+                result.setMessage("成功");
+                result.setData(phoneCode);
+            }
+            case 1 -> {
+                if (userMapper.checkUserByUserEmail(userEmail) == null) {
+                    result.setResultCode(ResultCode.R_UserNotFound);
+                    result.setMessage("该邮箱不存在");
+                    break;
+                }
+                String emailCode = emailService.generateVerificationCode();
+                emailService.sendVerificationCode(userEmail,emailCode);
+                redisTemplate.opsForValue().set(userEmail, emailCode, 1, TimeUnit.MINUTES);
+                result.setResultCode(ResultCode.R_Ok);
+                result.setMessage("成功");
+            }
+        }
+        return result;
+    }
+
+    @Override
     public Result loginAccount(Users user) {
         //验证参数
         if (user==null || Strings.isEmpty(user.getUserName()) || Strings.isEmpty(user.getUserPassword())){
@@ -74,6 +116,32 @@ public class UserServiceImpl implements UserService {
         userMap.put("id", queryUser.getUserId());
         String token= JwtUtil.genToken(userMap);
         redisTemplate.opsForValue().set(token,token,1, TimeUnit.HOURS);
+        return new Result(ResultCode.R_Ok,token);
+    }
+
+    @Override
+    public Result loginPhoneNumber(Map<String, String> param) {
+        String phoneNum = param.get("userPhoneNUmber");
+        String phoneCode = param.get("code");
+        Users queryUser = userMapper.findUserByUserPhoneNumber(phoneNum);
+        //验证参数
+        if (Strings.isEmpty(phoneNum) || Strings.isEmpty(phoneCode)){
+            return new Result(ResultCode.R_ParamError);
+        }
+        //查询用户是否存在
+        if (queryUser == null){
+            return new Result(ResultCode.R_UserNotFound);
+        }
+        //验证code
+        String redisCode=redisTemplate.opsForValue().get(phoneNum);
+        if (!redisCode.equals(phoneCode)){
+            return new Result(ResultCode.R_CodeError);
+        }
+        //生成token，准备登录
+        Map<String,Object> userMap=new HashMap<>();
+        userMap.put("id",queryUser.getUserId());
+        String token=JwtUtil.genToken(userMap);
+        redisTemplate.opsForValue().set(token,token,1,TimeUnit.HOURS);
         return new Result(ResultCode.R_Ok,token);
     }
 
@@ -154,48 +222,9 @@ public class UserServiceImpl implements UserService {
         return new Result(rowAffected>0?ResultCode.R_Ok:ResultCode.R_UpdateDbFailed);
     }
 
-    @Override
-    public Result getCode(Users user) {
-        String userPhoneNumber=user.getUserPhoneNumber();
-        String userEmail=user.getUserEmail();
-        Result result=new Result();
-        //两个全为空或全不为空，都不行
-        if ((Strings.isEmpty(userPhoneNumber) && Strings.isEmpty(userEmail)) || (!Strings.isEmpty(userPhoneNumber) && !Strings.isEmpty(userEmail))){
-            return new Result(ResultCode.R_ParamError);
-        }
-        //0是手机号验证，1是邮箱验证
-        int verifyType=Strings.isEmpty(userPhoneNumber)?1:0;
-        switch (verifyType) {
-            case 0 -> {
-                if (userMapper.checkUserByUserPhoneNumber(userPhoneNumber) == null) {
-                    result.setResultCode(ResultCode.R_UserNotFound);
-                    result.setMessage("该手机号不存在");
-                    break;
-                }
-                //反正都是6位数，就用emailService生成了
-                String phoneCode = emailService.generateVerificationCode();
-                //存进redis里，1分钟后过期
-                redisTemplate.opsForValue().set(userPhoneNumber, phoneCode, 1, TimeUnit.MINUTES);
-                result.setResultCode(ResultCode.R_Ok);
-                result.setMessage("成功");
-                result.setData(phoneCode);
-            }
-            case 1 -> {
-                if (userMapper.checkUserByUserEmail(userEmail) == null) {
-                    result.setResultCode(ResultCode.R_UserNotFound);
-                    result.setMessage("该邮箱不存在");
-                    break;
-                }
-                String emailCode = emailService.generateVerificationCode();
-                emailService.sendVerificationCode(userEmail,emailCode);
-                //存进redis里，1分钟后过期
-                redisTemplate.opsForValue().set(userEmail, emailCode, 1, TimeUnit.MINUTES);
-                result.setResultCode(ResultCode.R_Ok);
-                result.setMessage("成功");
-            }
-        }
-        return result;
-    }
+
+
+
 
 }
 

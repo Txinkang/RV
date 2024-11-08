@@ -61,4 +61,11 @@ public interface UserService {
      * @return Result
      */
     Result getCode(Users user);
+
+    /**
+     * 手机号登录
+     * @param param
+     * @return Result
+     */
+    Result loginPhoneNumber(Map<String, String> param);
 }

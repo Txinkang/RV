@@ -12,6 +12,6 @@ public class EmailTests {
     @Test
     void sendEmail(){
         String emailCode = emailService.generateVerificationCode();
-        emailService.sendVerificationCode("2912528586@qq.com",emailCode);
+        emailService.sendVerificationCode("1614782657@qq.com",emailCode);
     }
 }

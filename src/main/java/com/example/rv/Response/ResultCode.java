@@ -24,6 +24,7 @@ public enum ResultCode {
     R_OldPasswordError(407,"旧密码错误"),
     R_NewPasswordNotSame(408,"新密码不一致"),
     R_RoleAlreadyUpgrade(409,"权限早已升级"),
+    R_CodeError(410,"验证码错误"),
     ;
 
     private int code;
