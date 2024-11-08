@@ -1,6 +1,7 @@
 package com.example.rv.interceptors;
 
 import com.example.rv.utils.JwtUtil;
+import com.example.rv.utils.Md5Util;
 import com.example.rv.utils.ThreadLocalUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,17 +18,18 @@ public class CheckTokenInterceptor implements HandlerInterceptor {
     private RedisTemplate<String,String> redisTemplate;
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        //验证token过没过期
+        //从token获取userId，拿到redis的key
         String token=request.getHeader("Authorization");
-        String redisToken=redisTemplate.opsForValue().get(token);
-        if (redisToken==null){
+        Map<String,Object> userMap = JwtUtil.parseToken(token);
+        String redisKey = Md5Util.getMD5String((String) userMap.get("id"));
+        String redisToken = redisTemplate.opsForValue().get(redisKey);
+        if (redisToken == null){
             response.setStatus(401);
             return false;
         }
-        //没过期就从token取数据,存进线程
-        Map<String,Object> map= JwtUtil.parseToken(redisToken);
-        map.put("token",redisToken);
-        ThreadLocalUtil.set(map);
+        //没过期就把数据存进线程
+        userMap.put("token",redisToken);
+        ThreadLocalUtil.set(userMap);
         return true;
     }
 

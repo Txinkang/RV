@@ -64,4 +64,9 @@ public class UserController {
     public Result loginPhoneNumber(@RequestBody @NotEmpty Map<String,String> param){
         return userService.loginPhoneNumber(param);
     }
+
+    @PostMapping("/loginEmail")
+    public Result loginEmail(@RequestBody @NotEmpty Map<String,String> param){
+        return userService.loginEmail(param);
+    }
 }

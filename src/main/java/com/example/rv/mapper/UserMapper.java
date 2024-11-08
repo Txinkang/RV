@@ -40,6 +40,9 @@ public interface UserMapper {
     @Update("update users set user_role = 1 where user_id = #{userId}")
     Integer updateUserRoleByUserId(Integer userId);
 
-    @Select("select * from users where user_phone_number=#{phoneNum}")
+    @Select("select * from users where user_phone_number = #{phoneNum}")
     Users findUserByUserPhoneNumber(String phoneNum);
+
+    @Select("select * from users where user_email = #{email}")
+    Users findUserByUserEmail(String email);
 }

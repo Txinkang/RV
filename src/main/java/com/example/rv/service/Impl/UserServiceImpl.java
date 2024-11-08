@@ -98,12 +98,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public Result loginAccount(Users user) {
         //验证参数
-        if (user==null || Strings.isEmpty(user.getUserName()) || Strings.isEmpty(user.getUserPassword())){
+        if (user == null || Strings.isEmpty(user.getUserName()) || Strings.isEmpty(user.getUserPassword())){
             return new Result(ResultCode.R_ParamError);
         }
         //查询用户是否存在
         Users queryUser = userMapper.findByUserName(user.getUserName());
-        if (queryUser==null){
+        if (queryUser == null){
             return new Result(ResultCode.R_UserNotFound);
         }
         //查询密码是否正确
@@ -111,17 +111,19 @@ public class UserServiceImpl implements UserService {
         if (!verifyPassword.equals(queryUser.getUserPassword())){
             return new Result(ResultCode.R_PasswordError);
         }
-        //存入信息生成token，进行登录
+        //存入信息生成token
         Map<String,Object> userMap=new HashMap<>();
         userMap.put("id", queryUser.getUserId());
-        String token= JwtUtil.genToken(userMap);
-        redisTemplate.opsForValue().set(token,token,1, TimeUnit.HOURS);
+        String token = JwtUtil.genToken(userMap);
+        //生成存入redis的key
+        String redisKey = Md5Util.getMD5String(String.valueOf(queryUser.getUserId()));
+        redisTemplate.opsForValue().set(redisKey,token,1, TimeUnit.HOURS);
         return new Result(ResultCode.R_Ok,token);
     }
 
     @Override
     public Result loginPhoneNumber(Map<String, String> param) {
-        String phoneNum = param.get("userPhoneNUmber");
+        String phoneNum = param.get("userPhoneNumber");
         String phoneCode = param.get("code");
         Users queryUser = userMapper.findUserByUserPhoneNumber(phoneNum);
         //验证参数
@@ -133,21 +135,56 @@ public class UserServiceImpl implements UserService {
             return new Result(ResultCode.R_UserNotFound);
         }
         //验证code
-        String redisCode=redisTemplate.opsForValue().get(phoneNum);
-        if (!redisCode.equals(phoneCode)){
+        String redisCode = redisTemplate.opsForValue().get(phoneNum);
+        if (redisCode == null || !redisCode.equals(phoneCode)){
             return new Result(ResultCode.R_CodeError);
         }
-        //生成token，准备登录
+        //存入信息生成token
         Map<String,Object> userMap=new HashMap<>();
-        userMap.put("id",queryUser.getUserId());
-        String token=JwtUtil.genToken(userMap);
-        redisTemplate.opsForValue().set(token,token,1,TimeUnit.HOURS);
+        userMap.put("id", queryUser.getUserId());
+        String token = JwtUtil.genToken(userMap);
+        //生成存入redis的key和value
+        String redisKey = Md5Util.getMD5String(String.valueOf(queryUser.getUserId()));
+        redisTemplate.opsForValue().set(redisKey,token,1, TimeUnit.HOURS);
+        redisTemplate.opsForValue().getAndDelete(phoneNum);
+        return new Result(ResultCode.R_Ok,token);
+    }
+
+    @Override
+    public Result loginEmail(Map<String, String> param) {
+        String email = param.get("userEmail");
+        String emailCode = param.get("code");
+        Users queryUser = userMapper.findUserByUserEmail(email);
+        //验证参数
+        if (Strings.isEmpty(email) || Strings.isEmpty(emailCode)){
+            return new Result(ResultCode.R_ParamError);
+        }
+        //查询用户是否存在
+        if (queryUser == null){
+            return new Result(ResultCode.R_UserNotFound);
+        }
+        //验证code
+        String redisCode = redisTemplate.opsForValue().get(email);
+        if (redisCode == null || !redisCode.equals(emailCode)){
+            return new Result(ResultCode.R_CodeError);
+        }
+        //存入信息生成token
+        Map<String,Object> userMap=new HashMap<>();
+        userMap.put("id", queryUser.getUserId());
+        String token = JwtUtil.genToken(userMap);
+        //生成存入redis的key和value
+        String UserId = String.valueOf(queryUser.getUserId());
+        String redisKey = Md5Util.getMD5String(UserId);
+        redisTemplate.opsForValue().set(redisKey,token,1, TimeUnit.HOURS);
+        redisTemplate.opsForValue().getAndDelete(email);
         return new Result(ResultCode.R_Ok,token);
     }
 
     @Override
     public Result logout(String token) {
-        redisTemplate.opsForValue().getAndDelete(token);
+        Map<String,Object> userMap = JwtUtil.parseToken(token);
+        String redisKey = Md5Util.getMD5String(String.valueOf(userMap.get("id")));
+        redisTemplate.opsForValue().getAndDelete(redisKey);
         return new Result(ResultCode.R_Ok);
     }
 

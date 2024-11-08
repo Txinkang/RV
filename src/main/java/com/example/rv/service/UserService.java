@@ -68,4 +68,11 @@ public interface UserService {
      * @return Result
      */
     Result loginPhoneNumber(Map<String, String> param);
+
+    /**
+     * 邮箱登录
+     * @param param
+     * @return Result
+     */
+    Result loginEmail(Map<String, String> param);
 }
