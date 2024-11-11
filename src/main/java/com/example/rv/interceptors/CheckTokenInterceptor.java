@@ -18,18 +18,25 @@ public class CheckTokenInterceptor implements HandlerInterceptor {
     private RedisTemplate<String,String> redisTemplate;
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        //从token获取userId，拿到redis的key
-        String token=request.getHeader("Authorization");
-        Map<String,Object> userMap = JwtUtil.parseToken(token);
-        String redisKey = Md5Util.getMD5String((String) userMap.get("id"));
-        String redisToken = redisTemplate.opsForValue().get(redisKey);
-        if (redisToken == null){
+        try {
+            //从token获取userId，拿到redis的key
+            String token=request.getHeader("Authorization");
+            Map<String,Object> userMap = JwtUtil.parseToken(token);
+            String redisKey = Md5Util.getMD5String((String) userMap.get("id"));
+            String redisToken = redisTemplate.opsForValue().get(redisKey);
+            if (redisToken == null){
+                response.setStatus(401);
+                return false;
+            }
+            //没过期就把数据存进线程
+            userMap.put("token",redisToken);
+            ThreadLocalUtil.set(userMap);
+        }catch (Exception e){
+            //token为null、token过期都会抛出异常。统一设置401
             response.setStatus(401);
             return false;
         }
-        //没过期就把数据存进线程
-        userMap.put("token",redisToken);
-        ThreadLocalUtil.set(userMap);
+
         return true;
     }
 

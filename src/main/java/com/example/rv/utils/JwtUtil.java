@@ -8,13 +8,13 @@ import java.util.Map;
 
 public class JwtUtil {
 
-    private static final String KEY = "itheima";
+    private static final String KEY = "RV";
 	
 	//接收业务数据,生成token并返回
     public static String genToken(Map<String, Object> claims) {
         return JWT.create()
                 .withClaim("claims", claims)
-                .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 6))
+                .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 + 1000 * 60)) //1000是毫秒，目前设置了1小时零1分钟
                 .sign(Algorithm.HMAC256(KEY));
     }
 
