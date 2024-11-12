@@ -7,24 +7,36 @@ import java.util.Date;
 import java.util.Map;
 
 public class JwtUtil {
-
+    private static final LogUtil logUtil = LogUtil.getLogger(JwtUtil.class);
     private static final String KEY = "RV";
 	
 	//接收业务数据,生成token并返回
     public static String genToken(Map<String, Object> claims) {
-        return JWT.create()
-                .withClaim("claims", claims)
-                .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 + 1000 * 60)) //1000是毫秒，目前设置了1小时零1分钟
-                .sign(Algorithm.HMAC256(KEY));
+        try {
+            return JWT.create()
+                    .withClaim("claims", claims)
+                    .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 + 1000 * 60)) //1000是毫秒，目前设置了1小时零1分钟
+                    .sign(Algorithm.HMAC256(KEY));
+        }catch (Exception e){
+            logUtil.error("jwt create token error: " + e);
+            return null;
+        }
+
     }
 
 	//接收token,验证token,并返回业务数据
     public static Map<String, Object> parseToken(String token) {
-        return JWT.require(Algorithm.HMAC256(KEY))
-                .build()
-                .verify(token)
-                .getClaim("claims")
-                .asMap();
+        try {
+            return JWT.require(Algorithm.HMAC256(KEY))
+                    .build()
+                    .verify(token)
+                    .getClaim("claims")
+                    .asMap();
+        }catch (Exception e){
+            logUtil.error("jwt parse token error: " + e);
+            return null;
+        }
+
     }
 
 }

@@ -1,10 +1,13 @@
 package com.example.rv.interceptors;
 
+import com.example.rv.service.common.RedisService;
 import com.example.rv.utils.JwtUtil;
+import com.example.rv.utils.LogUtil;
 import com.example.rv.utils.Md5Util;
 import com.example.rv.utils.ThreadLocalUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -15,29 +18,41 @@ import java.util.Map;
 @Component
 public class CheckTokenInterceptor implements HandlerInterceptor {
     @Autowired
-    private RedisTemplate<String,String> redisTemplate;
+    private RedisService redisService;
+    private static final LogUtil logUtil=LogUtil.getLogger(CheckTokenInterceptor.class);
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        try {
+        int runStep=0;
+        do {
             //从token获取userId，拿到redis的key
             String token=request.getHeader("Authorization");
+            if (token == null){
+                runStep = 1;
+                break;
+            }
             Map<String,Object> userMap = JwtUtil.parseToken(token);
+            if (userMap == null){
+                runStep = 2;
+                break;
+            }
             String redisKey = Md5Util.getMD5String((String) userMap.get("id"));
-            String redisToken = redisTemplate.opsForValue().get(redisKey);
-            if (redisToken == null){
-                response.setStatus(401);
-                return false;
+            if (Strings.isEmpty(redisKey)){
+                runStep = 3;
+                break;
+            }
+            String redisToken = redisService.get(redisKey);
+            if (Strings.isEmpty(redisToken)){
+                runStep = 4;
+                break;
             }
             //没过期就把数据存进线程
             userMap.put("token",redisToken);
             ThreadLocalUtil.set(userMap);
-        }catch (Exception e){
-            //token为null、token过期都会抛出异常。统一设置401
-            response.setStatus(401);
-            return false;
-        }
-
-        return true;
+            return true;
+        }while (false);
+        logUtil.error("CheckTokenInterceptor error in step : " ,runStep);
+        response.setStatus(401);
+        return false;
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.example.rv.mapper.UserMapper;
 import com.example.rv.pojo.Users;
 import com.example.rv.service.UserService;
 import com.example.rv.service.common.EmailService;
+import com.example.rv.service.common.RedisService;
 import com.example.rv.utils.JwtUtil;
 import com.example.rv.utils.Md5Util;
 import com.example.rv.utils.ThreadLocalUtil;
@@ -23,8 +24,10 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
+    //@Autowired
+    //private RedisTemplate<String, String> redisTemplate;
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private RedisService redisService;
     @Autowired
     private EmailService emailService;
 
@@ -74,7 +77,12 @@ public class UserServiceImpl implements UserService {
                 //反正都是6位数，就用emailService生成了
                 String phoneCode = emailService.generateVerificationCode();
                 //存进redis里，1分钟后过期
-                redisTemplate.opsForValue().set(userPhoneNumber, phoneCode, 1, TimeUnit.MINUTES);
+                boolean redisSet = redisService.set(userPhoneNumber, phoneCode, 1, TimeUnit.MINUTES);
+                if (!redisSet) {
+                    result.setResultCode(ResultCode.R_Fail);
+                    result.setMessage("redis存储失败,稍后再试");
+                    break;
+                }
                 result.setResultCode(ResultCode.R_Ok);
                 result.setMessage("成功");
                 result.setData(phoneCode);
@@ -86,8 +94,13 @@ public class UserServiceImpl implements UserService {
                     break;
                 }
                 String emailCode = emailService.generateVerificationCode();
+                boolean redisSet = redisService.set(userEmail, emailCode, 1, TimeUnit.MINUTES);
+                if (!redisSet) {
+                    result.setResultCode(ResultCode.R_Fail);
+                    result.setMessage("redis存储失败,稍后再试");
+                    break;
+                }
                 emailService.sendVerificationCode(userEmail, emailCode);
-                redisTemplate.opsForValue().set(userEmail, emailCode, 1, TimeUnit.MINUTES);
                 result.setResultCode(ResultCode.R_Ok);
                 result.setMessage("成功");
             }
@@ -117,7 +130,10 @@ public class UserServiceImpl implements UserService {
         String token = JwtUtil.genToken(userMap);
         //生成存入redis的key
         String redisKey = Md5Util.getMD5String(String.valueOf(queryUser.getUserId()));
-        redisTemplate.opsForValue().set(redisKey, token, 1, TimeUnit.HOURS);
+        boolean redisSet = redisService.set(redisKey, token, 1, TimeUnit.HOURS);
+        if (!redisSet) {
+            return new Result(ResultCode.R_Fail);
+        }
         return new Result(ResultCode.R_Ok, token);
     }
 
@@ -135,7 +151,7 @@ public class UserServiceImpl implements UserService {
             return new Result(ResultCode.R_UserNotFound);
         }
         //验证code
-        String redisCode = redisTemplate.opsForValue().get(phoneNum);
+        String redisCode = redisService.get(phoneNum);
         if (redisCode == null || !redisCode.equals(phoneCode)) {
             return new Result(ResultCode.R_CodeError);
         }
@@ -145,8 +161,11 @@ public class UserServiceImpl implements UserService {
         String token = JwtUtil.genToken(userMap);
         //生成存入redis的key和value
         String redisKey = Md5Util.getMD5String(String.valueOf(queryUser.getUserId()));
-        redisTemplate.opsForValue().set(redisKey, token, 1, TimeUnit.HOURS);
-        redisTemplate.opsForValue().getAndDelete(phoneNum);
+        boolean redisSet = redisService.set(redisKey, token, 1, TimeUnit.HOURS);
+        boolean redisDelete = redisService.delete(phoneNum);
+        if (!redisSet || !redisDelete) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
         return new Result(ResultCode.R_Ok, token);
     }
 
@@ -164,7 +183,7 @@ public class UserServiceImpl implements UserService {
             return new Result(ResultCode.R_UserNotFound);
         }
         //验证code
-        String redisCode = redisTemplate.opsForValue().get(email);
+        String redisCode = redisService.get(email);
         if (redisCode == null || !redisCode.equals(emailCode)) {
             return new Result(ResultCode.R_CodeError);
         }
@@ -175,8 +194,11 @@ public class UserServiceImpl implements UserService {
         //生成存入redis的key和value
         String UserId = String.valueOf(queryUser.getUserId());
         String redisKey = Md5Util.getMD5String(UserId);
-        redisTemplate.opsForValue().set(redisKey, token, 1, TimeUnit.HOURS);
-        redisTemplate.opsForValue().getAndDelete(email);
+        boolean redisSet = redisService.set(redisKey, token, 1, TimeUnit.HOURS);
+        boolean redisDelete = redisService.delete(email);
+        if (!redisSet || !redisDelete) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
         return new Result(ResultCode.R_Ok, token);
     }
 
@@ -184,8 +206,8 @@ public class UserServiceImpl implements UserService {
     public Result logout(String token) {
         Map<String, Object> userMap = JwtUtil.parseToken(token);
         String redisKey = Md5Util.getMD5String(String.valueOf(userMap.get("id")));
-        redisTemplate.opsForValue().getAndDelete(redisKey);
-        return new Result(ResultCode.R_Ok);
+        boolean redisDelete = redisService.delete(redisKey);
+        return new Result(redisDelete ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
     }
 
     @Override
@@ -222,6 +244,9 @@ public class UserServiceImpl implements UserService {
         Map<String, Object> userMap = ThreadLocalUtil.get();
         Integer userId = (Integer) userMap.get("id");
         Users queryUser = userMapper.findByUserId(userId);
+        if (queryUser == null){
+            return new Result(ResultCode.R_UserNotFound);
+        }
         //验证参数
         if (Strings.isEmpty(pwd.get("oldPassword")) || Strings.isEmpty(pwd.get("newPassword")) || Strings.isEmpty(pwd.get("confirmNewPassword"))) {
             return new Result(ResultCode.R_ParamError);
@@ -241,8 +266,8 @@ public class UserServiceImpl implements UserService {
         if (!(rowAffected > 0)) {
             return new Result(ResultCode.R_UpdateDbFailed);
         }
-        redisTemplate.opsForValue().getAndDelete((String) userMap.get("token"));
-        return new Result(ResultCode.R_Ok);
+        boolean redisDelete = redisService.delete((String) userMap.get("token"));
+        return new Result(redisDelete?ResultCode.R_Ok:ResultCode.R_UpdateDbFailed);
     }
 
     @Override

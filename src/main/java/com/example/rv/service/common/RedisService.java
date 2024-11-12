@@ -1,6 +1,7 @@
 package com.example.rv.service.common;
 
 import com.example.rv.utils.LogUtil;
+import io.lettuce.core.RedisException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,22 +12,48 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class RedisService {
-    private static final LogUtil<RedisService> logUtil = new LogUtil<>(RedisService.class);
+    private static final LogUtil logUtil = LogUtil.getLogger(RedisService.class);
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    RedisService(RedisTemplate<String, Object> redisTemplate){
-        this.redisTemplate=redisTemplate;
+    RedisService(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
     }
 
-    public boolean set(String key, Object value, Integer timeout, TimeUnit timeUnit){
+
+    public String get(String key) {
+        if (key == null) {
+            return null;
+        }
+        Object value = redisTemplate.opsForValue().get(key);
+        if (value == null) {
+            return null;
+        }
+        return (String) value;
+    }
+
+    public boolean set(String key, Object value, Integer timeout, TimeUnit timeUnit) {
         try {
-            redisTemplate.opsForValue().set(key, value,timeout,timeUnit);
+            redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
             return true;
-        }catch (Exception e){
-            logUtil.error("redis set value error: "+e);
+        } catch (Exception e) {
+            logUtil.error("redis set value error: ", e);
             return false;
         }
+    }
+
+    public boolean delete(String key) {
+        try {
+            if (key != null && key.length() > 0) {
+                redisTemplate.opsForValue().getAndDelete(key);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            logUtil.error("redis delete key error: ", e);
+            return false;
+        }
+
     }
 }

@@ -3,17 +3,20 @@ package com.example.rv.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LogUtil<T> {
+public class LogUtil{
     private final Logger logger;
-    public LogUtil(Class<T> tClass){
-        this.logger = LoggerFactory.getLogger(tClass);
+    private LogUtil(Logger logger){
+        this.logger = logger;
+    }
+    public static LogUtil getLogger(Class<?> clazz){
+        return new LogUtil(LoggerFactory.getLogger(clazz));
     }
 
     public void info(String msg,Object... args){
-        logger.error(msg,args);
+        logger.info(msg,args);
     }
     public void warn(String msg,Object... args){
-        logger.error(msg,args);
+        logger.warn(msg,args);
     }
     public void error(String msg,Object... args){
         logger.error(msg,args);

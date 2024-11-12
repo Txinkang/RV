@@ -14,6 +14,7 @@ public enum ResultCode {
     R_UpdateDbFailed(502, "修改数据库失败"),
 
 
+
     //-----------------------用户相关错误 401-500---------------------
     R_ParamError(401,"参数异常"),
     R_UserNameIsExist(402,"用户名已存在"),
