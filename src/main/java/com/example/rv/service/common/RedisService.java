@@ -38,7 +38,7 @@ public class RedisService {
             redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
             return true;
         } catch (Exception e) {
-            logUtil.error("redis set value error: ", e);
+            logUtil.error("redis set value error: " + e);
             return false;
         }
     }
@@ -51,7 +51,7 @@ public class RedisService {
             }
             return false;
         } catch (Exception e) {
-            logUtil.error("redis delete key error: ", e);
+            logUtil.error("redis delete key error: " + e);
             return false;
         }
 

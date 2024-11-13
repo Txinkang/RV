@@ -79,7 +79,7 @@ public class Md5Util {
             }
             return stringbuffer.toString();
         }catch (Exception e){
-            logutil.error("Md5Util bufferToHex error : " , e);
+            logutil.error("Md5Util bufferToHex error : " + e);
             return null;
         }
 
@@ -93,7 +93,7 @@ public class Md5Util {
             stringbuffer.append(c0);
             stringbuffer.append(c1);
         }catch (Exception e){
-            logutil.error("Md5Util appendHexPair error : " , e);
+            logutil.error("Md5Util appendHexPair error : "  + e);
         }
 
     }

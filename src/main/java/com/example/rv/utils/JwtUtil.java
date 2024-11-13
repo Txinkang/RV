@@ -2,6 +2,7 @@ package com.example.rv.utils;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.example.rv.constData.MagicMathConstData;
 
 import java.util.Date;
 import java.util.Map;
@@ -15,7 +16,7 @@ public class JwtUtil {
         try {
             return JWT.create()
                     .withClaim("claims", claims)
-                    .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 + 1000 * 60)) //1000是毫秒，目前设置了1小时零1分钟
+                    .withExpiresAt(new Date(System.currentTimeMillis() + MagicMathConstData.MAGIC_GEN_TOKEN_TIME))
                     .sign(Algorithm.HMAC256(KEY));
         }catch (Exception e){
             logUtil.error("jwt create token error: " + e);

@@ -1,5 +1,6 @@
 package com.example.rv.interceptors;
 
+import com.example.rv.constData.RedisConstData;
 import com.example.rv.service.common.RedisService;
 import com.example.rv.utils.JwtUtil;
 import com.example.rv.utils.LogUtil;
@@ -35,7 +36,7 @@ public class CheckTokenInterceptor implements HandlerInterceptor {
                 runStep = 2;
                 break;
             }
-            String redisKey = Md5Util.getMD5String((String) userMap.get("id"));
+            String redisKey = RedisConstData.USER_LOGIN_TOKEN + userMap.get("id");
             if (Strings.isEmpty(redisKey)){
                 runStep = 3;
                 break;
@@ -45,12 +46,17 @@ public class CheckTokenInterceptor implements HandlerInterceptor {
                 runStep = 4;
                 break;
             }
+            //万一刷新了之后前端没更新，token不相等也算过期。
+            if (!redisToken.equals(token)){
+                runStep = 5;
+                break;
+            }
             //没过期就把数据存进线程
             userMap.put("token",redisToken);
             ThreadLocalUtil.set(userMap);
             return true;
         }while (false);
-        logUtil.error("CheckTokenInterceptor error in step : " ,runStep);
+        logUtil.error("CheckTokenInterceptor error in step : " + runStep);
         response.setStatus(401);
         return false;
     }
