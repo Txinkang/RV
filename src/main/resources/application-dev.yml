@@ -31,9 +31,15 @@ spring:
           starttls:
             enable: true
             required: true
+  #将参数以时间戳返回
   jackson:
     serialization:
       write-dates-as-timestamps: true
+  mvc:
+    static-path-pattern: /images/**
+  web:
+    resources:
+      static-locations: file:/Users/tangxinkang/Projects/IDeaProjects/RV/src/main/resources/static
 
 mybatis:
   configuration:

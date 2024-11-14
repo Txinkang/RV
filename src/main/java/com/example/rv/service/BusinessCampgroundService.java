@@ -1,0 +1,18 @@
+package com.example.rv.service;
+
+import com.example.rv.Response.Result;
+import com.example.rv.pojo.Campground;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+public interface BusinessCampgroundService {
+    /**
+     * 上传营地信息进行审核
+     *
+     * @param campground
+     * @param campgroundPicture
+     * @return Result
+     */
+    Result uploadCampground(Campground campground, List<MultipartFile> campgroundPicture);
+}
