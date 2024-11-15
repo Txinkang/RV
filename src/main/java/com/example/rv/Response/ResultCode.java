@@ -26,6 +26,7 @@ public enum ResultCode {
     R_NewPasswordNotSame(408,"新密码不一致"),
     R_RoleAlreadyUpgrade(409,"权限早已升级"),
     R_CodeError(410,"验证码错误"),
+    R_CampIsExist(411,"该营地已存在，请检查名称或地址是否正确"),
     ;
 
     private int code;
