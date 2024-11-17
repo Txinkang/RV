@@ -12,6 +12,7 @@ import com.example.rv.service.common.RedisService;
 import com.example.rv.utils.JwtUtil;
 import com.example.rv.utils.Md5Util;
 import com.example.rv.utils.ThreadLocalUtil;
+import lombok.SneakyThrows;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,7 @@ public class UserServiceImpl implements UserService {
             return new Result(ResultCode.R_UserEmailIsExist);
         }
         //处理一下数据准备写入
-        String userPassword = Md5Util.getMD5String(user.getUserPassword());
+        String userPassword = Md5Util.getMD5String(String.valueOf(user.getUserPassword()));
         if (userPassword == null){
             return new Result(ResultCode.R_Fail);
         }

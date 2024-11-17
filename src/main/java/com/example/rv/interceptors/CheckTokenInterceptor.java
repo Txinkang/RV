@@ -22,7 +22,7 @@ public class CheckTokenInterceptor implements HandlerInterceptor {
     private RedisService redisService;
     private static final LogUtil logUtil=LogUtil.getLogger(CheckTokenInterceptor.class);
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler){
         int runStep=0;
         do {
             //从token获取userId，拿到redis的key
@@ -56,7 +56,7 @@ public class CheckTokenInterceptor implements HandlerInterceptor {
             ThreadLocalUtil.set(userMap);
             return true;
         }while (false);
-        logUtil.error("CheckTokenInterceptor error in step : " + runStep);
+        logUtil.error("CheckTokenInterceptor error in step : " + runStep + ", url: " + request.getRequestURL());
         response.setStatus(401);
         return false;
     }
