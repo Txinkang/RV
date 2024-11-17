@@ -15,4 +15,10 @@ public interface BusinessCampgroundService {
      * @return Result
      */
     Result uploadCampground(Campground campground, List<MultipartFile> campgroundPicture);
+
+    /**
+     * 查看营地信息
+     * @return Result
+     */
+    Result checkCampgroundList();
 }

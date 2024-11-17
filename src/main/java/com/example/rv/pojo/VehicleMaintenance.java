@@ -9,7 +9,7 @@ public class VehicleMaintenance {
   private int vehicleMaintenanceVehicleId;
   private String vehicleMaintenanceMaintenanceDetails;
   private java.sql.Timestamp vehicleMaintenanceCompletedAt;
-  private int vehicleMaintenanceStatus;
+  private short vehicleMaintenanceStatus;
   private java.sql.Timestamp vehicleMaintenanceCreatedAt;
   private java.sql.Timestamp vehicleMaintenanceUpdatedAt;
 

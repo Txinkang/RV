@@ -10,10 +10,10 @@ public class Campground {
   private String campgroundName;
   private String campgroundLocation;
   private String campgroundFacilityDetails;
-  private double campgroundPrice;
+  private float campgroundPrice;
   private String campgroundPicture;
   private String campgroundAuditFailedMsg;
-  private char campgroundStatus;
+  private short campgroundStatus;
   private java.sql.Timestamp campgroundCreatedAt;
   private java.sql.Timestamp campgroundUpdatedAt;
 

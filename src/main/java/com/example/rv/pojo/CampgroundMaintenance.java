@@ -9,7 +9,7 @@ public class CampgroundMaintenance {
   private int campgroundMaintenanceCampgroundId;
   private String campgroundMaintenanceDetails;
   private java.sql.Timestamp campgroundMaintenanceCompletedAt;
-  private char campgroundMaintenanceStatus;
+  private short campgroundMaintenanceStatus;
   private java.sql.Timestamp campgroundMaintenanceCreatedAt;
   private java.sql.Timestamp campgroundMaintenanceUpdatedAt;
 }

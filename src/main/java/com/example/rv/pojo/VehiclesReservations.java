@@ -13,7 +13,7 @@ public class VehiclesReservations {
   private double vehicleReservationTotalPrice;
   private int vehicleReservationContractDetails;
   private java.sql.Timestamp vehicleReservationSignedAt;
-  private int vehicleReservationStatus;
+  private short vehicleReservationStatus;
   private java.sql.Timestamp vehicleReservationCreatedAt;
   private java.sql.Timestamp vehicleReservationUpdatedAt;
 

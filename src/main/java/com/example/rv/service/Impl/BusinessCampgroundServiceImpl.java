@@ -89,4 +89,9 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
         logUtil.error("uploadCampground error in step : ", runStep);
         return new Result(ResultCode.R_Error);
     }
+
+    @Override
+    public Result checkCampgroundList() {
+        return null;
+    }
 }

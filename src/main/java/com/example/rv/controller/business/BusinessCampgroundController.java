@@ -24,4 +24,10 @@ public class BusinessCampgroundController {
         return businessCampgroundService.uploadCampground(campground, campgroundPicture);
     }
 
+    @GetMapping("/checkCampgroundList")
+    public Result checkCampgroundList(){
+        return businessCampgroundService.checkCampgroundList();
+    }
+
+
 }

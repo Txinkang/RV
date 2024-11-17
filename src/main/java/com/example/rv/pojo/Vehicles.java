@@ -10,10 +10,10 @@ public class Vehicles {
   private int vehicleType;
   private String vehicleLocation;
   private String vehicleDescription;
-  private double vehiclePrice;
+  private float vehiclePrice;
   private String vehiclePicture;
   private String vehicleAuditFailedMsg;
-  private int vehicleStatus;
+  private short vehicleStatus;
   private java.sql.Timestamp vehicleCreatedAt;
   private java.sql.Timestamp vehicleUpdatedAt;
 
