@@ -1,8 +1,9 @@
 package com.example.rv.service;
 
 import com.example.rv.Response.Result;
-import com.example.rv.pojo.Campground;
+
+import java.util.Map;
 
 public interface UserCampgroundService {
-    Result checkCampgroundList(Campground campground);
+    Result checkCampgroundList(Map<String, Object> requestMap);
 }

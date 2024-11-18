@@ -9,6 +9,8 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @Validated
 @RestController
 @RequestMapping("/user")
@@ -18,7 +20,7 @@ public class UserCampgroundController {
     private UserCampgroundService userCampgroundService;
 
     @PostMapping("/checkCampgroundList")
-    public Result checkCampgroundList(@RequestBody Campground campground){
-        return userCampgroundService.checkCampgroundList(campground);
+    public Result checkCampgroundList(@RequestBody Map<String,Object> requestMap){
+        return userCampgroundService.checkCampgroundList(requestMap);
     }
 }
