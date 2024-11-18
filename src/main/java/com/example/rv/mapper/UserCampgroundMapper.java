@@ -1,8 +1,11 @@
 package com.example.rv.mapper;
 
 import com.example.rv.pojo.Campground;
+import com.example.rv.pojo.CampgroundReservations;
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -14,9 +17,29 @@ public interface UserCampgroundMapper {
             "AND (campground_location = #{campgroundLocation} or #{campgroundLocation} is null) " +
             "AND (campground_price = #{campgroundPrice} or #{campgroundPrice} = 0 )")
     List<Campground> findCampHasStatus(Campground campground);
+
     @Select("select * from campground where " +
             "(campground_name = #{campgroundName} or #{campgroundName} is null) " +
             "AND (campground_location = #{campgroundLocation} or #{campgroundLocation} is null) " +
             "AND (campground_price = #{campgroundPrice} or #{campgroundPrice} = 0 )")
     List<Campground> findCampNoStatus(Campground campground);
+
+    @Select("select campground_id from campground where campground_id=#{campgroundId}")
+    Integer checkCampByCampId(int campgroundId);
+
+    @Insert("insert into campground_reservations (campground_reservation_campground_id,campground_reservation_renter_id," +
+            "campground_reservation_start_date,campground_reservation_end_date,campground_reservation_contract_details," +
+            "campground_reservation_status,campground_reservation_total_price) " +
+            "values(#{campgroundReservations.campgroundReservationCampgroundId},#{renterId},#{campgroundReservations.campgroundReservationStartDate}," +
+            "#{campgroundReservations.campgroundReservationEndDate},2,0,#{campgroundReservations.campgroundReservationTotalPrice})")
+    Integer reserveCamp(CampgroundReservations campgroundReservations, Integer renterId);
+
+    @Select("select campground_status from campground where campground_id = #{campgroundId}")
+    Integer checkCampStatusByCampId(int campgroundId);
+
+    @Update("update campground set campground_status = #{campStatus} where campground_id = #{campgroundId}")
+    Integer updateCampStatusByCampId(int campgroundId, int campStatus);
+
+    @Select("select * from campground where campground_id = #{campgroundId}")
+    Campground findCampByCampId(int campgroundId);
 }

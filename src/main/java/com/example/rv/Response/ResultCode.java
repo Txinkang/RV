@@ -27,6 +27,10 @@ public enum ResultCode {
     R_RoleAlreadyUpgrade(409,"权限早已升级"),
     R_CodeError(410,"验证码错误"),
     R_CampIsExist(411,"该营地已存在，请检查名称或地址是否正确"),
+    R_DateError(412,"预定时间错误"),
+    R_CampNotFound(413,"营地不存在"),
+    R_CampAlreadyReserved(414,"该营地不可预定"),
+    R_PriceIsLow(415,"预定价格过低"),
     ;
 
     private int code;

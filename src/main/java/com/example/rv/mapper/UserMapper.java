@@ -45,4 +45,7 @@ public interface UserMapper {
 
     @Select("select * from users where user_email = #{email}")
     Users findUserByUserEmail(String email);
+
+    @Select("select user_id from users where user_id=#{renterId}")
+    Integer checkUserByUserId(Integer renterId);
 }
