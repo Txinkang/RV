@@ -19,4 +19,10 @@ public interface UserCampgroundService {
      * @return Result
      */
     Result campgroundReservation(CampgroundReservations campgroundReservations);
+
+    /**
+     * 查看已预约的营地
+     * @return Result
+     */
+    Result checkBookedCampground();
 }

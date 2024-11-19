@@ -1,4 +1,4 @@
-package com.example.rv.mapper;
+package com.example.rv.mapper.business;
 
 import com.example.rv.pojo.Campground;
 import org.apache.ibatis.annotations.Insert;

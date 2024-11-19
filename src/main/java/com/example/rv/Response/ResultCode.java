@@ -31,6 +31,13 @@ public enum ResultCode {
     R_CampNotFound(413,"营地不存在"),
     R_CampAlreadyReserved(414,"该营地不可预定"),
     R_PriceIsLow(415,"预定价格过低"),
+    R_IsReserved(416,"用户已有预定"),
+    R_UserNotReserved(417,"用户暂无预定"),
+    R_VehicleNotFound(418,"车辆不存在"),
+    R_VehicleAlreadyReserved(419,"该车辆不可预定"),
+
+    //-----------------------系统相关错误 401-500---------------------
+    R_SaveFileError(501,"文件保存异常"),
     ;
 
     private int code;

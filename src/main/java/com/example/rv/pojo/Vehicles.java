@@ -4,10 +4,9 @@ import lombok.Data;
 
 @Data
 public class Vehicles {
-
   private int vehicleId;
   private int vehicleOwnerId;
-  private int vehicleType;
+  private String vehicleType;
   private String vehicleLocation;
   private String vehicleDescription;
   private double vehiclePrice;
@@ -16,6 +15,4 @@ public class Vehicles {
   private int vehicleStatus;
   private java.sql.Timestamp vehicleCreatedAt;
   private java.sql.Timestamp vehicleUpdatedAt;
-
-
 }

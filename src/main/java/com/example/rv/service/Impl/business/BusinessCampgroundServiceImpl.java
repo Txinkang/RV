@@ -1,9 +1,8 @@
-package com.example.rv.service.Impl;
+package com.example.rv.service.Impl.business;
 
 import com.example.rv.Response.Result;
 import com.example.rv.Response.ResultCode;
-import com.example.rv.constData.UploadFileConstData;
-import com.example.rv.mapper.BusinessCampMapper;
+import com.example.rv.mapper.business.BusinessCampMapper;
 import com.example.rv.pojo.Campground;
 import com.example.rv.service.BusinessCampgroundService;
 import com.example.rv.utils.FileUtil;
@@ -17,14 +16,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 
 @Service
@@ -43,7 +37,7 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
             return new Result(ResultCode.R_ParamError);
         }
         if (Strings.isEmpty(campground.getCampgroundName()) || Strings.isEmpty(campground.getCampgroundLocation()) ||
-                Strings.isEmpty(campground.getCampgroundFacilityDetails()) || campground.getCampgroundPrice() < 0
+                Strings.isEmpty(campground.getCampgroundFacilityDetails()) || campground.getCampgroundPrice() <= 0
         ) {
             return new Result(ResultCode.R_ParamError);
         }

@@ -1,10 +1,10 @@
-package com.example.rv.service.Impl;
+package com.example.rv.service.Impl.user;
 
 import com.example.rv.Response.PageResponse;
 import com.example.rv.Response.Result;
 import com.example.rv.Response.ResultCode;
-import com.example.rv.mapper.UserCampgroundMapper;
-import com.example.rv.mapper.UserMapper;
+import com.example.rv.mapper.user.UserCampgroundMapper;
+import com.example.rv.mapper.user.UserMapper;
 import com.example.rv.pojo.Campground;
 import com.example.rv.pojo.CampgroundReservations;
 import com.example.rv.service.UserCampgroundService;
@@ -74,7 +74,7 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
         Timestamp CampgroundStartDate = campgroundReservations.getCampgroundReservationStartDate();
         Timestamp CampgroundEndDate = campgroundReservations.getCampgroundReservationEndDate();
         double CampgroundTotalPrice = campgroundReservations.getCampgroundReservationTotalPrice();
-        //验证参数
+        //验证营地信息
         Campground queryCamp = userCampgroundMapper.findCampByCampId(CampgroundId);
         if (CampgroundId <= 0 || queryCamp == null) {
             return new Result(ResultCode.R_CampNotFound);
@@ -93,7 +93,7 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
         if (currentTimestamp.after(CampgroundStartDate) || CampgroundStartDate.after(CampgroundEndDate)) {
             return new Result(ResultCode.R_DateError);
         }
-        //验证预定人id
+        //验证预定人是否合格
         Map<String, Object> userMap = ThreadLocalUtil.get();
         if (userMap == null) {
             return new Result(ResultCode.R_Error);
@@ -106,6 +106,10 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
         if (checkUser == null) {
             return new Result(ResultCode.R_UserNotFound);
         }
+        CampgroundReservations isReserved = userCampgroundMapper.checkReservationByRenterId(renterId);
+        if (isReserved != null) {
+            return new Result(ResultCode.R_IsReserved);
+        }
         //开始预定
         Integer reserveRowAffected = userCampgroundMapper.reserveCamp(campgroundReservations, renterId);
         if (reserveRowAffected > 0) {
@@ -114,5 +118,26 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
             return new Result(statusRowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
         }
         return new Result(ResultCode.R_UpdateDbFailed);
+    }
+
+    @Override
+    public Result checkBookedCampground() {
+        Map<String, Object> userMap = ThreadLocalUtil.get();
+        if (userMap == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        Integer renterId = (Integer) userMap.get("id");
+        if (renterId == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        Integer checkUser = userMapper.checkUserByUserId(renterId);
+        if (checkUser == null) {
+            return new Result(ResultCode.R_UserNotFound);
+        }
+        CampgroundReservations queryReservation = userCampgroundMapper.checkReservationByRenterId(renterId);
+        if (queryReservation == null) {
+            return new Result(ResultCode.R_UserNotReserved);
+        }
+        return new Result(ResultCode.R_Ok, queryReservation);
     }
 }

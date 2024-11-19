@@ -1,4 +1,4 @@
-package com.example.rv.mapper;
+package com.example.rv.mapper.user;
 
 import com.example.rv.pojo.Campground;
 import com.example.rv.pojo.CampgroundReservations;
@@ -24,9 +24,6 @@ public interface UserCampgroundMapper {
             "AND (campground_price = #{campgroundPrice} or #{campgroundPrice} = 0 )")
     List<Campground> findCampNoStatus(Campground campground);
 
-    @Select("select campground_id from campground where campground_id=#{campgroundId}")
-    Integer checkCampByCampId(int campgroundId);
-
     @Insert("insert into campground_reservations (campground_reservation_campground_id,campground_reservation_renter_id," +
             "campground_reservation_start_date,campground_reservation_end_date,campground_reservation_contract_details," +
             "campground_reservation_status,campground_reservation_total_price) " +
@@ -34,12 +31,13 @@ public interface UserCampgroundMapper {
             "#{campgroundReservations.campgroundReservationEndDate},2,0,#{campgroundReservations.campgroundReservationTotalPrice})")
     Integer reserveCamp(CampgroundReservations campgroundReservations, Integer renterId);
 
-    @Select("select campground_status from campground where campground_id = #{campgroundId}")
-    Integer checkCampStatusByCampId(int campgroundId);
-
     @Update("update campground set campground_status = #{campStatus} where campground_id = #{campgroundId}")
     Integer updateCampStatusByCampId(int campgroundId, int campStatus);
 
     @Select("select * from campground where campground_id = #{campgroundId}")
     Campground findCampByCampId(int campgroundId);
+
+    @Select("select * from campground_reservations where (campground_reservation_renter_id = #{renterId}) " +
+            "AND (campground_reservation_status = 0)")
+    CampgroundReservations checkReservationByRenterId(Integer renterId);
 }

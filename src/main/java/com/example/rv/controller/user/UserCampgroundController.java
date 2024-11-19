@@ -29,4 +29,9 @@ public class UserCampgroundController {
     public Result campgroundReservation(@RequestBody CampgroundReservations campgroundReservations){
         return userCampgroundService.campgroundReservation(campgroundReservations);
     }
+
+    @GetMapping("/checkBookedCampground")
+    public Result checkBookedCampground(){
+        return userCampgroundService.checkBookedCampground();
+    }
 }

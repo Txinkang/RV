@@ -1,10 +1,10 @@
-package com.example.rv.service.Impl;
+package com.example.rv.service.Impl.user;
 
 import com.example.rv.Response.Result;
 import com.example.rv.Response.ResultCode;
 import com.example.rv.constData.MagicMathConstData;
 import com.example.rv.constData.RedisConstData;
-import com.example.rv.mapper.UserMapper;
+import com.example.rv.mapper.user.UserMapper;
 import com.example.rv.pojo.Users;
 import com.example.rv.service.UserService;
 import com.example.rv.service.common.EmailService;
@@ -12,7 +12,6 @@ import com.example.rv.service.common.RedisService;
 import com.example.rv.utils.JwtUtil;
 import com.example.rv.utils.Md5Util;
 import com.example.rv.utils.ThreadLocalUtil;
-import lombok.SneakyThrows;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

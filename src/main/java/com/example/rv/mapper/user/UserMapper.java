@@ -1,4 +1,4 @@
-package com.example.rv.mapper;
+package com.example.rv.mapper.user;
 
 import com.example.rv.pojo.Users;
 import org.apache.ibatis.annotations.Insert;
