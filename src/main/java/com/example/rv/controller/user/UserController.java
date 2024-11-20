@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@RestController
 @Validated
+@RestController
 @RequestMapping("/user")
 public class UserController {
 
