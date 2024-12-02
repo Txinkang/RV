@@ -1,6 +1,7 @@
 package com.example.rv.service;
 
 import com.example.rv.Response.Result;
+import com.example.rv.pojo.Payments;
 
 import java.math.BigDecimal;
 
@@ -11,4 +12,11 @@ public interface UserPayService {
      * @return Result
      */
     Result recharge(BigDecimal amount);
+
+    /**
+     * 付款
+     * @param payment
+     * @return Result
+     */
+    Result payment(Payments payment);
 }

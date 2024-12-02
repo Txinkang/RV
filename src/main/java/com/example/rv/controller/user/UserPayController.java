@@ -1,13 +1,11 @@
 package com.example.rv.controller.user;
 
 import com.example.rv.Response.Result;
+import com.example.rv.pojo.Payments;
 import com.example.rv.service.UserPayService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
@@ -22,5 +20,10 @@ public class UserPayController {
     @PostMapping("/recharge")
     public Result recharge(@RequestParam BigDecimal amount){
         return userPayService.recharge(amount);
+    }
+
+    @PostMapping("/payment")
+    public Result payment(@RequestBody @Validated Payments payment){
+        return userPayService.payment(payment);
     }
 }

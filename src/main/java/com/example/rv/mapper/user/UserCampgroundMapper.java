@@ -2,11 +2,13 @@ package com.example.rv.mapper.user;
 
 import com.example.rv.pojo.Campground;
 import com.example.rv.pojo.CampgroundReservations;
+import com.example.rv.pojo.VehiclesReservations;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Mapper
@@ -40,4 +42,12 @@ public interface UserCampgroundMapper {
     @Select("select * from campground_reservations where (campground_reservation_renter_id = #{renterId}) " +
             "AND (campground_reservation_status = 0)")
     CampgroundReservations checkReservationByRenterId(Integer renterId);
+    @Select("select * from campground_reservations where campground_reservation_id = #{campgroundReservationId}" )
+    CampgroundReservations findReservationById(int campgroundReservationId);
+    @Update("update campground_reservations set campground_reservation_signed_at = #{campCurrentTimestamp} where campground_reservation_id = #{campgroundReservationId}")
+    Integer userSignedContract(int campgroundReservationId, Timestamp campCurrentTimestamp);
+    @Select("select campground_owner_id from campground where campground_id = #{campgroundReservationCampgroundId}")
+    int findOwnerByCampId(int campgroundReservationCampgroundId);
+    @Update("update campground_reservations set campground_reservation_status = 2 where campground_reservation_id = #{campgroundReservationId}")
+    Integer changeStatusById(int campgroundReservationId);
 }

@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Mapper
@@ -27,6 +28,9 @@ public interface UserVehicleMapper {
     @Select("select * from vehicles where vehicle_id = #{vehicleId}")
     Vehicles findVehicleByVehicleId(int vehicleId);
 
+    @Select("select * from vehicles_reservations where vehicle_reservation_id = #{reservationsId}" )
+    VehiclesReservations findReservationById(Integer reservationsId);
+
     @Select("select * from vehicles_reservations where (vehicle_reservation_renter_id = #{renterId}) " +
             "AND (vehicle_reservation_status = 0)")
     VehiclesReservations checkReservationByRenterId(Integer renterId);
@@ -40,4 +44,11 @@ public interface UserVehicleMapper {
 
     @Update("update vehicles set vehicle_status = #{status} where vehicle_id = #{vehicleId}")
     Integer updateVehicleStatusByVehicleId(int vehicleId, int status);
+    @Update("update vehicles_reservations set vehicle_reservation_signed_at = #{currentTimestamp} where vehicle_reservation_id = #{vehicleReservationId}")
+    Integer userSignedContract(int vehicleReservationId, Timestamp currentTimestamp);
+
+    @Select("select vehicle_owner_id from vehicles where vehicle_id = #{vehicleReservationVehicleId}")
+    int findOwnerByVehicleId(int vehicleReservationVehicleId);
+    @Update("update vehicles_reservations set vehicle_reservation_status = 2 where vehicle_reservation_id = #{vehicleReservationId}")
+    Integer changeStatusById(int vehicleReservationId);
 }
