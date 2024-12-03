@@ -34,4 +34,10 @@ public class UserCampgroundController {
     public Result checkBookedCampground(){
         return userCampgroundService.checkBookedCampground();
     }
+
+    @PostMapping("/campgroundCancelReservation")
+    public Result campgroundCancelReservation(@RequestBody CampgroundReservations campgroundReservations){
+        return userCampgroundService.campgroundCancelReservation(campgroundReservations);
+    }
+
 }

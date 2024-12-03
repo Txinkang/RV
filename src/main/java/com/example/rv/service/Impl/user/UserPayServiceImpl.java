@@ -65,11 +65,11 @@ public class UserPayServiceImpl implements UserPayService {
         if (userId == null) {
             return new Result(ResultCode.R_Error);
         }
-        int transaction = payment.getPaymentTransactionType();
         Users queryUser = userMapper.findByUserId(userId);
         if (queryUser == null) {
             return new Result(ResultCode.R_UserNotFound);
         }
+        int transaction = payment.getPaymentTransactionType();
         switch (transaction) {
             //0是车辆，1是营地
             case 0 -> {
@@ -81,40 +81,45 @@ public class UserPayServiceImpl implements UserPayService {
                 if (vehiclesReservations == null) {
                     return new Result(ResultCode.R_ReservationNotFound);
                 }
-                BigDecimal userBalance = new BigDecimal(String.valueOf(queryUser.getUserBalance()));
-                BigDecimal totalPrice = BigDecimal.valueOf(vehiclesReservations.getVehicleReservationTotalPrice());
-                if (userBalance.compareTo(totalPrice) < 0) {
+                //查看预定是否超时，超时就取消
+                long vehicleCurrentTime = System.currentTimeMillis();
+                Timestamp vehicleCurrentTimestamp = new Timestamp(vehicleCurrentTime);
+                if (vehicleCurrentTimestamp.after(vehiclesReservations.getVehicleReservationEndDate())){
+                    int vehicleId = vehiclesReservations.getVehicleReservationVehicleId();
+                    int vehicleReservationStatus = 1;
+                    int vehicleStatus = 0;
+                    //这边自动取消失败不用怕，还有个接口专门取消预定的
+                    userVehicleMapper.cancelReservationById(vehicleReservationId,vehicleId,vehicleReservationStatus,vehicleStatus);
+                    return new Result(ResultCode.R_ReservationTimeout);
+                }
+                //查看余额是否充足
+                BigDecimal vehicleUserBalance = new BigDecimal(String.valueOf(queryUser.getUserBalance()));
+                BigDecimal vehicleTotalPrice = BigDecimal.valueOf(vehiclesReservations.getVehicleReservationTotalPrice());
+                if (vehicleUserBalance.compareTo(vehicleTotalPrice) < 0) {
                     return new Result(ResultCode.R_UserNoBalance);
                 }
                 //付款前，先签署合同
-                long currentTime = System.currentTimeMillis();
-                Timestamp currentTimestamp = new Timestamp(currentTime);
-                Integer signedRowAffected = userVehicleMapper.userSignedContract(vehicleReservationId, currentTimestamp);
+                Integer signedRowAffected = userVehicleMapper.userSignedContract(vehicleReservationId, vehicleCurrentTimestamp);
                 if (signedRowAffected < 1) {
                     return new Result(ResultCode.R_SignedContractFailed);
                 }
-                Integer paymentId = userPayMapper.payForVehicle(userId, vehicleReservationId);
-                if (paymentId == null) {
+                //插入支付表
+                payment.setPaymentUserId(userId);
+                payment.setPaymentVehicleReservationId(vehicleReservationId);
+                payment.setPaymentTransactionType(0);
+                payment.setPaymentStatus(4);
+                Integer insertPayment = userPayMapper.payForVehicle(payment);
+                if (insertPayment < 1) {
                     return new Result(ResultCode.R_UpdateDbFailed);
                 }
-                //扣用户钱
-                Integer reduceBalance = userPayMapper.reduceUserBalanceById(userId, totalPrice);
-                if (reduceBalance < 1) {
-                    return new Result(ResultCode.R_ReduceBalanceFailed);
-                }
-                //给商家加钱
-                int businessId = userVehicleMapper.findOwnerByVehicleId(vehiclesReservations.getVehicleReservationVehicleId());
-                Integer addBalance = userPayMapper.rechargeByUserId(totalPrice, businessId);
-                if (addBalance < 1) {
-                    return new Result(ResultCode.R_UpdateDbFailed);
-                }
-                Integer changeStatus = userPayMapper.changePaymentStatusById(paymentId);
-                if (changeStatus < 1) {
-                    return new Result(ResultCode.R_UpdateDbFailed);
-                }
-                Integer changeReservationStatus = userVehicleMapper.changeStatusById(vehicleReservationId);
-                if (changeReservationStatus < 1) {
-                    return new Result(ResultCode.R_UpdateDbFailed);
+                //完成支付
+                int vehicleBusinessId = userVehicleMapper.findOwnerByCampId(vehiclesReservations.getVehicleReservationVehicleId());
+                int paymentStatus = 0;
+                int vehiclePaymentId = payment.getPaymentId();
+                int vehicleReservationStatus = 2;
+                Integer vehicleCompletePay = userPayMapper.completePayForVehicle(userId,vehicleBusinessId,vehicleTotalPrice,vehiclePaymentId,vehicleReservationId,paymentStatus,vehicleReservationStatus);
+                if (vehicleCompletePay < 1){
+                    return new Result(ResultCode.R_PaymentFailed);
                 }
             }
             case 1 -> {
@@ -126,40 +131,45 @@ public class UserPayServiceImpl implements UserPayService {
                 if (campgroundsReservations == null) {
                     return new Result(ResultCode.R_ReservationNotFound);
                 }
+                //查看预定是否超时，超时就取消
+                long campCurrentTime = System.currentTimeMillis();
+                Timestamp campCurrentTimestamp = new Timestamp(campCurrentTime);
+                if (campCurrentTimestamp.after(campgroundsReservations.getCampgroundReservationEndDate())){
+                    int campgroundId = campgroundsReservations.getCampgroundReservationCampgroundId();
+                    int campReservationStatus = 1;
+                    int campStatus = 0;
+                    //这边自动取消失败不用怕，还有个接口专门取消预定的
+                    userCampgroundMapper.cancelReservationById(campgroundReservationId,campgroundId,campReservationStatus,campStatus);
+                    return new Result(ResultCode.R_ReservationTimeout);
+                }
+                //查看余额是否充足
                 BigDecimal campgroundUserBalance = new BigDecimal(String.valueOf(queryUser.getUserBalance()));
                 BigDecimal campgroundTotalPrice = BigDecimal.valueOf(campgroundsReservations.getCampgroundReservationTotalPrice());
                 if (campgroundUserBalance.compareTo(campgroundTotalPrice) < 0) {
                     return new Result(ResultCode.R_UserNoBalance);
                 }
                 //付款前，先签署合同
-                long campCurrentTime = System.currentTimeMillis();
-                Timestamp campCurrentTimestamp = new Timestamp(campCurrentTime);
                 Integer campSigned = userCampgroundMapper.userSignedContract(campgroundReservationId, campCurrentTimestamp);
                 if (campSigned < 1) {
                     return new Result(ResultCode.R_SignedContractFailed);
                 }
-                Integer campPaymentId = userPayMapper.payForCamp(userId, campgroundReservationId);
-                if (campPaymentId == null) {
+                //插入支付表
+                payment.setPaymentUserId(userId);
+                payment.setPaymentCampgroundReservationId(campgroundReservationId);
+                payment.setPaymentTransactionType(1);
+                payment.setPaymentStatus(4);
+                Integer insertPayment = userPayMapper.payForCamp(payment);
+                if (insertPayment < 1) {
                     return new Result(ResultCode.R_UpdateDbFailed);
                 }
-                //扣用户钱
-                Integer campReduceBalance = userPayMapper.reduceUserBalanceById(userId, campgroundTotalPrice);
-                if (campReduceBalance < 1) {
-                    return new Result(ResultCode.R_ReduceBalanceFailed);
-                }
-                //给商家加钱
+                //完成支付
                 int campBusinessId = userCampgroundMapper.findOwnerByCampId(campgroundsReservations.getCampgroundReservationCampgroundId());
-                Integer campAddBalance = userPayMapper.rechargeByUserId(campgroundTotalPrice, campBusinessId);
-                if (campAddBalance < 1) {
-                    return new Result(ResultCode.R_UpdateDbFailed);
-                }
-                Integer campChangeStatus = userPayMapper.changePaymentStatusById(campPaymentId);
-                if (campChangeStatus < 1) {
-                    return new Result(ResultCode.R_UpdateDbFailed);
-                }
-                Integer changeCampReservationStatus = userCampgroundMapper.changeStatusById(campgroundReservationId);
-                if (changeCampReservationStatus < 1) {
-                    return new Result(ResultCode.R_UpdateDbFailed);
+                int paymentStatus = 0;
+                int campPaymentId = payment.getPaymentId();
+                int CampReservationStatus = 2;
+                Integer campCompletePay = userPayMapper.completePayForCamp(userId,campBusinessId,campgroundTotalPrice,campPaymentId,campgroundReservationId,paymentStatus,CampReservationStatus);
+                if (campCompletePay < 1){
+                    return new Result(ResultCode.R_PaymentFailed);
                 }
             }
         }

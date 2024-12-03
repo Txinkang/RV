@@ -25,4 +25,11 @@ public interface UserCampgroundService {
      * @return Result
      */
     Result checkBookedCampground();
+
+    /**
+     * 取消预约营地
+     * @param campgroundReservations
+     * @return Result
+     */
+    Result campgroundCancelReservation(CampgroundReservations campgroundReservations);
 }

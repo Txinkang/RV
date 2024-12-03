@@ -39,6 +39,9 @@ public enum ResultCode {
     R_UserNoBalance(421,"该用户余额不足"),
     R_SignedContractFailed(422,"签署合同失败"),
     R_ReduceBalanceFailed(423,"扣除余额失败"),
+    R_ReservationTimeout(424,"该预定已超时"),
+    R_PaymentFailed(425,"支付失败"),
+
 
     //-----------------------系统相关错误 401-500---------------------
     R_SaveFileError(501,"文件保存异常"),

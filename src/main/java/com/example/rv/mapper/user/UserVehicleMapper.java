@@ -51,4 +51,13 @@ public interface UserVehicleMapper {
     int findOwnerByVehicleId(int vehicleReservationVehicleId);
     @Update("update vehicles_reservations set vehicle_reservation_status = 2 where vehicle_reservation_id = #{vehicleReservationId}")
     Integer changeStatusById(int vehicleReservationId);
+    @Update("UPDATE vehicles_reservations, vehicles " +
+            "SET vehicles_reservations.vehicle_reservation_status = #{vehicleReservationStatus}, " +
+            "    vehicles.vehicle_status = #{vehicleStatus} " +
+            "WHERE vehicles_reservations.vehicle_reservation_id = #{vehicleReservationId} " +
+            "  AND vehicles.vehicle_id = #{vehicleId};")
+    Integer cancelReservationById(int vehicleReservationId, int vehicleId, int vehicleReservationStatus, int vehicleStatus);
+
+    @Select("select vehicle_owner_id from vehicles where vehicle_id = #{vehicleId}")
+    int findOwnerByCampId(int vehicleId);
 }

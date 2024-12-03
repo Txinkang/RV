@@ -7,6 +7,7 @@ import com.example.rv.mapper.user.UserCampgroundMapper;
 import com.example.rv.mapper.user.UserMapper;
 import com.example.rv.pojo.Campground;
 import com.example.rv.pojo.CampgroundReservations;
+import com.example.rv.pojo.Users;
 import com.example.rv.service.UserCampgroundService;
 import com.example.rv.utils.ThreadLocalUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -139,5 +140,40 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
             return new Result(ResultCode.R_UserNotReserved);
         }
         return new Result(ResultCode.R_Ok, queryReservation);
+    }
+
+    @Override
+    public Result campgroundCancelReservation(CampgroundReservations campgroundReservations) {
+        //校验参数
+        if(campgroundReservations == null){
+            return new Result(ResultCode.R_ParamError);
+        }
+        int campReservationId = campgroundReservations.getCampgroundReservationId();
+        if (campReservationId <= 0){
+            return new Result(ResultCode.R_ParamError);
+        }
+        //验证用户
+        Map<String, Object> userMap = ThreadLocalUtil.get();
+        if (userMap == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        Integer userId = (Integer) userMap.get("id");
+        if (userId == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        Integer queryUser = userMapper.checkUserByUserId(userId);
+        if (queryUser == null) {
+            return new Result(ResultCode.R_UserNotFound);
+        }
+        //取消预约
+        CampgroundReservations queryCampReservation = userCampgroundMapper.findReservationById(campReservationId);
+        if (queryCampReservation == null) {
+            return new Result(ResultCode.R_ReservationNotFound);
+        }
+        int campgroundId = queryCampReservation.getCampgroundReservationCampgroundId();
+        int campReservationStatus = 1;
+        int campStatus = 0;
+        Integer cancel = userCampgroundMapper.cancelReservationById(campReservationId,campgroundId,campReservationStatus,campStatus);
+        return new Result(cancel > 0 ?ResultCode.R_Ok:ResultCode.R_UpdateDbFailed);
     }
 }
