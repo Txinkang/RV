@@ -13,15 +13,6 @@ public interface UserPayMapper {
     @Update("update users set user_balance = user_balance + CAST(#{amount} AS DECIMAL(18, 2)) where user_id = #{checkUser}")
     Integer rechargeByUserId(BigDecimal amount, Integer checkUser);
 
-    @Insert("insert into payments (payment_user_id,payment_vehicle_reservation_id,payment_transaction_type,payment_status) " +
-            "values (#{userId}, #{vehicleReservationId}, 0, 4)")
-    @Options(useGeneratedKeys = true, keyProperty = "payment_id", keyColumn = "payment_id")
-    Integer payForVehicle(Integer userId, int vehicleReservationId);
-    @Update("update users set user_balance = user_balance - CAST(#{totalPrice} AS DECIMAL(18, 2)) where user_id = #{userId}")
-    Integer reduceUserBalanceById(Integer userId, BigDecimal totalPrice);
-
-    @Update("update payments set payment_status = 0 where payment_id = #{paymentId}")
-    Integer changePaymentStatusById(Integer paymentId);
     @Insert("insert into payments (payment_user_id,payment_campground_reservation_id,payment_transaction_type,payment_status) " +
             "values (#{paymentUserId}, #{paymentCampgroundReservationId}, #{paymentTransactionType}, #{paymentStatus})")
     @Options(useGeneratedKeys = true, keyProperty = "paymentId", keyColumn = "payment_id")
@@ -49,10 +40,10 @@ public interface UserPayMapper {
             "set u1.user_balance = u1.user_balance - CAST(#{vehicleTotalPrice} AS DECIMAL(18, 2)), " +
             "u2.user_balance = u2.user_balance + CAST(#{vehicleTotalPrice} AS DECIMAL(18, 2)), " +
             "p.payment_status = #{paymentStatus}, " +
-            "vr.vehicles_reservation_status = #{vehicleReservationStatus} " +
+            "vr.vehicle_reservation_status = #{vehicleReservationStatus} " +
             "where u1.user_id = #{userId} " +
             "and u2.user_id = #{vehicleBusinessId} " +
             "and p.payment_id = #{vehiclePaymentId} " +
-            "and vr.vehicles_reservation_id = #{vehicleReservationId}")
+            "and vr.vehicle_reservation_id = #{vehicleReservationId}")
     Integer completePayForVehicle(Integer userId, int vehicleBusinessId, BigDecimal vehicleTotalPrice, int vehiclePaymentId, int vehicleReservationId, int paymentStatus, int vehicleReservationStatus);
 }

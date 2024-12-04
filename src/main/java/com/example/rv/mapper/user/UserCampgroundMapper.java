@@ -48,8 +48,6 @@ public interface UserCampgroundMapper {
     Integer userSignedContract(int campgroundReservationId, Timestamp campCurrentTimestamp);
     @Select("select campground_owner_id from campground where campground_id = #{campgroundReservationCampgroundId}")
     int findOwnerByCampId(int campgroundReservationCampgroundId);
-    @Update("update campground_reservations set campground_reservation_status = 2 where campground_reservation_id = #{campgroundReservationId}")
-    Integer changeStatusById(int campgroundReservationId);
 
     @Update("UPDATE campground_reservations, campground " +
             "SET campground_reservations.campground_reservation_status = #{campReservationStatus}, " +

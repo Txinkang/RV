@@ -47,10 +47,6 @@ public interface UserVehicleMapper {
     @Update("update vehicles_reservations set vehicle_reservation_signed_at = #{currentTimestamp} where vehicle_reservation_id = #{vehicleReservationId}")
     Integer userSignedContract(int vehicleReservationId, Timestamp currentTimestamp);
 
-    @Select("select vehicle_owner_id from vehicles where vehicle_id = #{vehicleReservationVehicleId}")
-    int findOwnerByVehicleId(int vehicleReservationVehicleId);
-    @Update("update vehicles_reservations set vehicle_reservation_status = 2 where vehicle_reservation_id = #{vehicleReservationId}")
-    Integer changeStatusById(int vehicleReservationId);
     @Update("UPDATE vehicles_reservations, vehicles " +
             "SET vehicles_reservations.vehicle_reservation_status = #{vehicleReservationStatus}, " +
             "    vehicles.vehicle_status = #{vehicleStatus} " +
@@ -59,5 +55,5 @@ public interface UserVehicleMapper {
     Integer cancelReservationById(int vehicleReservationId, int vehicleId, int vehicleReservationStatus, int vehicleStatus);
 
     @Select("select vehicle_owner_id from vehicles where vehicle_id = #{vehicleId}")
-    int findOwnerByCampId(int vehicleId);
+    int findOwnerByVehicleId(int vehicleId);
 }

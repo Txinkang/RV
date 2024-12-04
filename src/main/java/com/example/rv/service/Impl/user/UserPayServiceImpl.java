@@ -108,12 +108,12 @@ public class UserPayServiceImpl implements UserPayService {
                 payment.setPaymentVehicleReservationId(vehicleReservationId);
                 payment.setPaymentTransactionType(0);
                 payment.setPaymentStatus(4);
-                Integer insertPayment = userPayMapper.payForVehicle(payment);
-                if (insertPayment < 1) {
+                Integer vehicleInsertPayment = userPayMapper.payForVehicle(payment);
+                if (vehicleInsertPayment < 1) {
                     return new Result(ResultCode.R_UpdateDbFailed);
                 }
                 //完成支付
-                int vehicleBusinessId = userVehicleMapper.findOwnerByCampId(vehiclesReservations.getVehicleReservationVehicleId());
+                int vehicleBusinessId = userVehicleMapper.findOwnerByVehicleId(vehiclesReservations.getVehicleReservationVehicleId());
                 int paymentStatus = 0;
                 int vehiclePaymentId = payment.getPaymentId();
                 int vehicleReservationStatus = 2;
@@ -158,8 +158,8 @@ public class UserPayServiceImpl implements UserPayService {
                 payment.setPaymentCampgroundReservationId(campgroundReservationId);
                 payment.setPaymentTransactionType(1);
                 payment.setPaymentStatus(4);
-                Integer insertPayment = userPayMapper.payForCamp(payment);
-                if (insertPayment < 1) {
+                Integer campInsertPayment = userPayMapper.payForCamp(payment);
+                if (campInsertPayment < 1) {
                     return new Result(ResultCode.R_UpdateDbFailed);
                 }
                 //完成支付

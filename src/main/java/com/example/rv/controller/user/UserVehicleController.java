@@ -31,4 +31,9 @@ public class UserVehicleController {
     public Result checkBookedVehicle(){
         return userVehicleService.checkBookedVehicle();
     }
+
+    @PostMapping("/vehicleCancelReservation")
+    public Result vehicleCancelReservation(@RequestBody VehiclesReservations vehiclesReservations){
+        return userVehicleService.vehicleCancelReservation(vehiclesReservations);
+    }
 }

@@ -25,4 +25,11 @@ public interface UserVehicleService {
      * @return Result
      */
     Result checkBookedVehicle();
+
+    /**
+     * 取消预订车辆
+     * @param vehiclesReservations
+     * @return Result
+     */
+    Result vehicleCancelReservation(VehiclesReservations vehiclesReservations);
 }
