@@ -38,9 +38,13 @@ public enum ResultCode {
     R_ReservationNotFound(420,"未找到该预定信息"),
     R_UserNoBalance(421,"该用户余额不足"),
     R_SignedContractFailed(422,"签署合同失败"),
-    R_ReduceBalanceFailed(423,"扣除余额失败"),
     R_ReservationTimeout(424,"该预定已超时"),
     R_PaymentFailed(425,"支付失败"),
+    R_ExceedRefundTime(426,"超出退款时间"),
+    R_PaymentNotFound(427,"未找到该订单信息"),
+    R_ExceedCancelTime(428,"超出退款时间"),
+
+
 
 
     //-----------------------系统相关错误 401-500---------------------

@@ -4,6 +4,7 @@ import com.example.rv.Response.Result;
 import com.example.rv.pojo.Payments;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 public interface UserPayService {
     /**
@@ -19,4 +20,11 @@ public interface UserPayService {
      * @return Result
      */
     Result payment(Payments payment);
+
+    /**
+     * 退款
+     * @param paramMap
+     * @return Result
+     */
+    Result refund(Map<String,Integer> paramMap);
 }

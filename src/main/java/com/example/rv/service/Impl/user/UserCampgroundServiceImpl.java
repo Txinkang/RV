@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -169,6 +170,14 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
         CampgroundReservations queryCampReservation = userCampgroundMapper.findReservationById(campReservationId);
         if (queryCampReservation == null) {
             return new Result(ResultCode.R_ReservationNotFound);
+        }
+        long campCurrentTime = System.currentTimeMillis();
+        Timestamp campTimestamp = new Timestamp(campCurrentTime);
+        LocalDateTime dateTime = queryCampReservation.getCampgroundReservationStartDate().toLocalDateTime();
+        LocalDateTime previousDay = dateTime.minusDays(1);
+        Timestamp previousTimestamp = Timestamp.valueOf(previousDay);
+        if (campTimestamp.after(previousTimestamp)) {
+            return new Result(ResultCode.R_ExceedCancelTime);
         }
         int campgroundId = queryCampReservation.getCampgroundReservationCampgroundId();
         int campReservationStatus = 1;

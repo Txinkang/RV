@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -167,6 +168,14 @@ public class UserVehicleServiceImpl implements UserVehicleService {
         VehiclesReservations queryVehicleReservation = userVehicleMapper.findReservationById(vehicleReservationId);
         if (queryVehicleReservation == null) {
             return new Result(ResultCode.R_ReservationNotFound);
+        }
+        long vehicleCurrentTime = System.currentTimeMillis();
+        Timestamp vehicleTimestamp = new Timestamp(vehicleCurrentTime);
+        LocalDateTime dateTime = queryVehicleReservation.getVehicleReservationStartDate().toLocalDateTime();
+        LocalDateTime previousDay = dateTime.minusDays(1);
+        Timestamp previousTimestamp = Timestamp.valueOf(previousDay);
+        if (vehicleTimestamp.after(previousTimestamp)) {
+            return new Result(ResultCode.R_ExceedCancelTime);
         }
         int vehicleId = queryVehicleReservation.getVehicleReservationVehicleId();
         int vehicleReservationStatus = 1;

@@ -32,7 +32,7 @@ public interface UserVehicleMapper {
     VehiclesReservations findReservationById(Integer reservationsId);
 
     @Select("select * from vehicles_reservations where (vehicle_reservation_renter_id = #{renterId}) " +
-            "AND (vehicle_reservation_status = 0)")
+            "AND (vehicle_reservation_status in (0,2))")
     VehiclesReservations checkReservationByRenterId(Integer renterId);
 
     @Insert("insert into vehicles_reservations (vehicle_reservation_vehicle_id,vehicle_reservation_renter_id," +

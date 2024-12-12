@@ -1,10 +1,7 @@
 package com.example.rv.mapper.user;
 
 import com.example.rv.pojo.Payments;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.math.BigDecimal;
 
@@ -46,4 +43,36 @@ public interface UserPayMapper {
             "and p.payment_id = #{vehiclePaymentId} " +
             "and vr.vehicle_reservation_id = #{vehicleReservationId}")
     Integer completePayForVehicle(Integer userId, int vehicleBusinessId, BigDecimal vehicleTotalPrice, int vehiclePaymentId, int vehicleReservationId, int paymentStatus, int vehicleReservationStatus);
+
+    @Update("update users u1, users u2, payments p, vehicles_reservations vr, vehicles v " +
+            "set u1.user_balance = u1.user_balance - CAST(#{refundPrice} AS DECIMAL(18, 2)), " +
+            "u2.user_balance = u2.user_balance + CAST(#{refundPrice} AS DECIMAL(18, 2)), " +
+            "p.payment_status = #{paymentStatus}, " +
+            "vr.vehicle_reservation_status = #{vehicleReservationStatus}, " +
+            "v.vehicle_status = #{vehicleStatus} " +
+            "where u1.user_id = #{businessId} " +
+            "and u2.user_id = #{userId} " +
+            "and p.payment_id = #{paymentId} " +
+            "and vr.vehicle_reservation_id = #{vehicleReservationId} " +
+            "and v.vehicle_id = #{vehicleId}")
+    Integer refundVehicleByPaymentId(Integer paymentId, int vehicleId, int vehicleReservationId, int userId, int businessId, int paymentStatus, int vehicleStatus, int vehicleReservationStatus, BigDecimal refundPrice);
+
+    @Update("update users u1, users u2, payments p, vehicles_reservations vr, vehicles v " +
+            "set u1.user_balance = u1.user_balance - CAST(#{refundPrice} AS DECIMAL(18, 2)), " +
+            "u2.user_balance = u2.user_balance + CAST(#{refundPrice} AS DECIMAL(18, 2)), " +
+            "p.payment_status = #{paymentStatus}, " +
+            "vr.vehicle_reservation_status = #{vehicleReservationStatus}, " +
+            "v.vehicle_status = #{vehicleStatus} " +
+            "where u1.user_id = #{businessId} " +
+            "and u2.user_id = #{userId} " +
+            "and p.payment_id = #{paymentId} " +
+            "and vr.vehicle_reservation_id = #{vehicleReservationId} " +
+            "and v.vehicle_id = #{vehicleId}")
+    Integer refundCampByPaymentId(Integer paymentId, int campId, int campReservationId, int userId, int businessId, int paymentStatus, int campStatus, int campReservationStatus, BigDecimal refundPrice);
+
+    @Select("select * from payments where payment_vehicle_reservation_id = #{reservationId}")
+    Payments findPaymentByVRId(int reservationId);
+
+    @Select("select * from payments where payment_campground_reservation_id = #{reservationId}")
+    Payments findPaymentByCRId(int reservationId);
 }

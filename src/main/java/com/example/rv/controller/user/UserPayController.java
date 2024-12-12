@@ -8,6 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Validated
 @RestController
@@ -26,4 +27,13 @@ public class UserPayController {
     public Result payment(@RequestBody @Validated Payments payment){
         return userPayService.payment(payment);
     }
+
+
+    @PostMapping("/refund")
+    public Result refund(@RequestBody Map<String,Integer> paramMap){
+        return userPayService.refund(paramMap);
+    }
+
+
+
 }
