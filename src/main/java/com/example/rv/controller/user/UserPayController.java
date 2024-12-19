@@ -34,6 +34,9 @@ public class UserPayController {
         return userPayService.refund(paramMap);
     }
 
-
+    @GetMapping("/checkOrder")
+    public Result checkOrder(){
+        return userPayService.checkOrder();
+    }
 
 }

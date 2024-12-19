@@ -4,6 +4,7 @@ import com.example.rv.pojo.Payments;
 import org.apache.ibatis.annotations.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Mapper
 public interface UserPayMapper {
@@ -75,4 +76,7 @@ public interface UserPayMapper {
 
     @Select("select * from payments where payment_campground_reservation_id = #{reservationId}")
     Payments findPaymentByCRId(int reservationId);
+
+    @Select("select * from payments where payment_user_id = #{userId}")
+    List<Payments> findPaymentByUserId(Integer userId);
 }

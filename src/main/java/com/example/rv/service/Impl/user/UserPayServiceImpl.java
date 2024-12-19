@@ -6,10 +6,7 @@ import com.example.rv.mapper.user.UserCampgroundMapper;
 import com.example.rv.mapper.user.UserMapper;
 import com.example.rv.mapper.user.UserPayMapper;
 import com.example.rv.mapper.user.UserVehicleMapper;
-import com.example.rv.pojo.CampgroundReservations;
-import com.example.rv.pojo.Payments;
-import com.example.rv.pojo.Users;
-import com.example.rv.pojo.VehiclesReservations;
+import com.example.rv.pojo.*;
 import com.example.rv.service.UserPayService;
 import com.example.rv.utils.ThreadLocalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +15,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -266,5 +266,43 @@ public class UserPayServiceImpl implements UserPayService {
             }
         }
         return new Result(ResultCode.R_Ok);
+    }
+
+    @Override
+    public Result checkOrder() {
+        Map<String, Object> userMap = ThreadLocalUtil.get();
+        if (userMap == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        Integer userId = (Integer) userMap.get("id");
+        if (userId == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        Users queryUser = userMapper.findByUserId(userId);
+        if (queryUser == null) {
+            return new Result(ResultCode.R_UserNotFound);
+        }
+        //查询需要的字段，整合到一起返回
+        List<Payments> queryPayments = userPayMapper.findPaymentByUserId(userId);
+        List<Map<String, Object>> responseList = new ArrayList<>();
+        for (Payments payment : queryPayments){
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("payment_id",payment.getPaymentId());
+            responseMap.put("payment_transaction_type",payment.getPaymentTransactionType());
+            responseMap.put("payment_status",payment.getPaymentStatus());
+            if (payment.getPaymentTransactionType() == 0) {
+                VehiclesReservations vehiclesReservations = userVehicleMapper.findReservationById(payment.getPaymentVehicleReservationId());
+                responseMap.put("start_date",vehiclesReservations.getVehicleReservationStartDate());
+                responseMap.put("end_date",vehiclesReservations.getVehicleReservationEndDate());
+                responseMap.put("total_price",vehiclesReservations.getVehicleReservationTotalPrice());
+            } else if (payment.getPaymentTransactionType() == 1) {
+                CampgroundReservations campgroundReservations = userCampgroundMapper.findReservationById(payment.getPaymentCampgroundReservationId());
+                responseMap.put("start_date",campgroundReservations.getCampgroundReservationStartDate());
+                responseMap.put("end_date",campgroundReservations.getCampgroundReservationEndDate());
+                responseMap.put("total_price",campgroundReservations.getCampgroundReservationTotalPrice());
+            }
+            responseList.add(responseMap);
+        }
+        return new Result(ResultCode.R_Ok,responseList);
     }
 }

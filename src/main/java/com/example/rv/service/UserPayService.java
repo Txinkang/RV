@@ -27,4 +27,10 @@ public interface UserPayService {
      * @return Result
      */
     Result refund(Map<String,Integer> paramMap);
+
+    /**
+     * 查看用户订单
+     * @return Result
+     */
+    Result checkOrder();
 }
