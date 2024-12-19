@@ -39,4 +39,8 @@ public class UserPayController {
         return userPayService.checkOrder();
     }
 
+    @PostMapping("/generateInvoice")
+    public Result generateInvoice(@RequestBody Map<String,Object> paramMap){
+        return userPayService.generateInvoice(paramMap);
+    }
 }

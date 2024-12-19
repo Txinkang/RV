@@ -1,5 +1,6 @@
 package com.example.rv.mapper.user;
 
+import com.example.rv.pojo.Invoices;
 import com.example.rv.pojo.Payments;
 import org.apache.ibatis.annotations.*;
 
@@ -79,4 +80,14 @@ public interface UserPayMapper {
 
     @Select("select * from payments where payment_user_id = #{userId}")
     List<Payments> findPaymentByUserId(Integer userId);
+
+    @Select("select * from payments where payment_id = #{paymentId}")
+    Payments findPaymentByPaymentId(Integer paymentId);
+
+    @Insert("insert into invoices (invoice_payment_id, invoice_number, invoice_total_amount) " +
+            "values(#{paymentId}, #{invoiceNumber}, #{paymentTotalPrice})")
+    Integer generetedInvoice(Integer paymentId, String invoiceNumber, double paymentTotalPrice);
+
+    @Select("select * from invoices where invoice_payment_id = #{paymentId}")
+    Invoices findInvoiceByPaymentId(Integer paymentId);
 }

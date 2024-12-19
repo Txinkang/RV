@@ -33,4 +33,12 @@ public interface UserPayService {
      * @return Result
      */
     Result checkOrder();
+
+    /**
+     * 生成发票
+     *
+     * @param paramMap
+     * @return Result
+     */
+    Result generateInvoice(Map<String, Object> paramMap);
 }

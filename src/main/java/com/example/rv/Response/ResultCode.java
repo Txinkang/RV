@@ -43,6 +43,10 @@ public enum ResultCode {
     R_ExceedRefundTime(426,"超出退款时间"),
     R_PaymentNotFound(427,"未找到该订单信息"),
     R_ExceedCancelTime(428,"超出退款时间"),
+    R_InvoiceAlreadyExist(429,"该订单发票已开具"),
+    R_PaymentNotSuccess(429,"该订单未支付成功，不可开具发票"),
+
+
 
 
 

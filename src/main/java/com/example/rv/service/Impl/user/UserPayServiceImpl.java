@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class UserPayServiceImpl implements UserPayService {
@@ -305,4 +302,31 @@ public class UserPayServiceImpl implements UserPayService {
         }
         return new Result(ResultCode.R_Ok,responseList);
     }
+
+    @Override
+    public Result generateInvoice(Map<String, Object> paramMap) {
+        if (paramMap == null){
+            return new Result(ResultCode.R_ParamError);
+        }
+        Integer paymentId = (Integer) paramMap.get("paymentId");
+        double paymentTotalPrice = (double) paramMap.get("paymentTotalPrice");
+        if (paymentId < 1 || paymentTotalPrice <= 0){
+            return new Result(ResultCode.R_ParamError);
+        }
+        Invoices queryInvoice = userPayMapper.findInvoiceByPaymentId(paymentId);
+        if (queryInvoice != null){
+            return new Result(ResultCode.R_InvoiceAlreadyExist);
+        }
+        Payments payments = userPayMapper.findPaymentByPaymentId(paymentId);
+        if (payments == null){
+            return new Result(ResultCode.R_PaymentNotFound);
+        }
+        if (payments.getPaymentStatus() != 0){
+            return new Result(ResultCode.R_PaymentNotSuccess);
+        }
+        String invoiceNumber = "INV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        Integer rowAffected = userPayMapper.generetedInvoice(paymentId,invoiceNumber,paymentTotalPrice);
+        return new Result(rowAffected > 0 ?ResultCode.R_Ok:ResultCode.R_UpdateDbFailed);
+    }
+
 }
