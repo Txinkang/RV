@@ -329,4 +329,16 @@ public class UserPayServiceImpl implements UserPayService {
         return new Result(rowAffected > 0 ?ResultCode.R_Ok:ResultCode.R_UpdateDbFailed);
     }
 
+    @Override
+    public Result checkInvoice(Invoices invoices) {
+        if (invoices == null || invoices.getInvoicePaymentId() < 1){
+            return new Result(ResultCode.R_Error);
+        }
+        Invoices queryInvoice = userPayMapper.findInvoiceByPaymentId(invoices.getInvoicePaymentId());
+        if (queryInvoice == null){
+            return new Result(ResultCode.R_PaymentNotGenerateInvoice);
+        }
+        return new Result(ResultCode.R_Ok,queryInvoice);
+    }
+
 }

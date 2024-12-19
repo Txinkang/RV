@@ -1,6 +1,7 @@
 package com.example.rv.controller.user;
 
 import com.example.rv.Response.Result;
+import com.example.rv.pojo.Invoices;
 import com.example.rv.pojo.Payments;
 import com.example.rv.service.UserPayService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,5 +43,10 @@ public class UserPayController {
     @PostMapping("/generateInvoice")
     public Result generateInvoice(@RequestBody Map<String,Object> paramMap){
         return userPayService.generateInvoice(paramMap);
+    }
+
+    @GetMapping("/checkInvoice")
+    public Result checkInvoice(@RequestBody Invoices invoices){
+        return userPayService.checkInvoice(invoices);
     }
 }

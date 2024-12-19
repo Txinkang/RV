@@ -1,6 +1,7 @@
 package com.example.rv.service;
 
 import com.example.rv.Response.Result;
+import com.example.rv.pojo.Invoices;
 import com.example.rv.pojo.Payments;
 
 import java.math.BigDecimal;
@@ -41,4 +42,11 @@ public interface UserPayService {
      * @return Result
      */
     Result generateInvoice(Map<String, Object> paramMap);
+
+    /**
+     * 查看发票
+     * @param invoices
+     * @return Result
+     */
+    Result checkInvoice(Invoices invoices);
 }
