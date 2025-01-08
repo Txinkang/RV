@@ -36,4 +36,9 @@ public class UserVehicleController {
     public Result vehicleCancelReservation(@RequestBody VehiclesReservations vehiclesReservations){
         return userVehicleService.vehicleCancelReservation(vehiclesReservations);
     }
+
+    @PostMapping("/uploadVehicleLocation")
+    public Result uploadVehicleLocation(@RequestBody Map<String,Object> requestMap){
+        return userVehicleService.uploadVehicleLocation(requestMap);
+    }
 }

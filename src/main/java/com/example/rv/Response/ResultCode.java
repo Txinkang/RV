@@ -42,10 +42,11 @@ public enum ResultCode {
     R_PaymentFailed(425,"支付失败"),
     R_ExceedRefundTime(426,"超出退款时间"),
     R_PaymentNotFound(427,"未找到该订单信息"),
-    R_ExceedCancelTime(428,"超出退款时间"),
+    R_ExceedCancelTime(428,"超出取消时间"),
     R_InvoiceAlreadyExist(429,"该订单发票已开具"),
     R_PaymentNotSuccess(429,"该订单未支付成功，不可开具发票"),
     R_PaymentNotGenerateInvoice(430,"该订单暂未生成发票"),
+    R_NotStarted(431,"未到开始时间"),
 
 
 
@@ -53,7 +54,7 @@ public enum ResultCode {
 
 
     //-----------------------系统相关错误 401-500---------------------
-    R_SaveFileError(501,"文件保存异常"),
+    R_SaveFileError(501,"文件保存异常"), 
     ;
 
     private int code;

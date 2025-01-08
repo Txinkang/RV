@@ -56,4 +56,7 @@ public interface UserVehicleMapper {
 
     @Select("select vehicle_owner_id from vehicles where vehicle_id = #{vehicleId}")
     int findOwnerByVehicleId(int vehicleId);
+
+    @Update("update vehicles set vehicle_location = #{location} where vehicle_id = #{vehicleId}")
+    Integer updateVehicleLocation(int vehicleId, String location);
 }

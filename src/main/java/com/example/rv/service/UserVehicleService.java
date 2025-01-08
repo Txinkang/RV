@@ -32,4 +32,11 @@ public interface UserVehicleService {
      * @return Result
      */
     Result vehicleCancelReservation(VehiclesReservations vehiclesReservations);
+
+    /**
+     * 上传车辆位置
+     * @param requestMap
+     * @return Result
+     */
+    Result uploadVehicleLocation(Map<String,Object> requestMap);
 }

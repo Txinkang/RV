@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -140,7 +141,19 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
         if (queryReservation == null) {
             return new Result(ResultCode.R_UserNotReserved);
         }
-        return new Result(ResultCode.R_Ok, queryReservation);
+        Campground queryCampground = userCampgroundMapper.findCampByCampId(queryReservation.getCampgroundReservationCampgroundId());
+        if (queryCampground == null) {
+            return new Result(ResultCode.R_CampNotFound);
+        }
+        Map<String,Object> repMap = new HashMap<>();
+        repMap.put("camp_name", queryCampground.getCampgroundName());
+        repMap.put("camp_location", queryCampground.getCampgroundLocation());
+        repMap.put("camp_id", queryCampground.getCampgroundId());
+        repMap.put("camp_reservation_id", queryReservation.getCampgroundReservationId());
+        repMap.put("camp_start_date", queryReservation.getCampgroundReservationStartDate());
+        repMap.put("camp_end_date", queryReservation.getCampgroundReservationEndDate());
+        repMap.put("camp_total_price", queryReservation.getCampgroundReservationTotalPrice());
+        return new Result(ResultCode.R_Ok, repMap);
     }
 
     @Override
@@ -176,8 +189,13 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
         LocalDateTime dateTime = queryCampReservation.getCampgroundReservationStartDate().toLocalDateTime();
         LocalDateTime previousDay = dateTime.minusDays(1);
         Timestamp previousTimestamp = Timestamp.valueOf(previousDay);
+        // 超时自动取消预约
         if (campTimestamp.after(previousTimestamp)) {
-            return new Result(ResultCode.R_ExceedCancelTime);
+            int campgroundId = queryCampReservation.getCampgroundReservationCampgroundId();
+            int campReservationStatus = 1;
+            int campStatus = 0;
+            Integer cancel = userCampgroundMapper.cancelReservationById(campReservationId,campgroundId,campReservationStatus,campStatus);
+            return new Result(cancel > 0 ?ResultCode.R_ExceedCancelTime:ResultCode.R_UpdateDbFailed);
         }
         int campgroundId = queryCampReservation.getCampgroundReservationCampgroundId();
         int campReservationStatus = 1;

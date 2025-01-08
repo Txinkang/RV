@@ -33,6 +33,16 @@ public class RedisService {
         return (String) value;
     }
 
+    public boolean set(String key, Object value) {
+        try {
+            redisTemplate.opsForValue().set(key, value);
+            return true;
+        } catch (Exception e) {
+            logUtil.error("redis set value error: " + e);
+            return false;
+        }
+    }
+
     public boolean set(String key, Object value, Integer timeout, TimeUnit timeUnit) {
         try {
             redisTemplate.opsForValue().set(key, value, timeout, timeUnit);

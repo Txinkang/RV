@@ -5,7 +5,6 @@ import com.example.rv.Response.Result;
 import com.example.rv.Response.ResultCode;
 import com.example.rv.mapper.user.UserVehicleMapper;
 import com.example.rv.mapper.user.UserMapper;
-import com.example.rv.pojo.CampgroundReservations;
 import com.example.rv.pojo.Vehicles;
 import com.example.rv.pojo.VehiclesReservations;
 import com.example.rv.service.UserVehicleService;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -138,7 +138,19 @@ public class UserVehicleServiceImpl implements UserVehicleService {
         if (queryReservation == null) {
             return new Result(ResultCode.R_UserNotReserved);
         }
-        return new Result(ResultCode.R_Ok, queryReservation);
+        Vehicles queryVehicles = userVehicleMapper.findVehicleByVehicleId(queryReservation.getVehicleReservationVehicleId());
+        if (queryVehicles == null) {
+            return new Result(ResultCode.R_VehicleNotFound);
+        }
+        Map<String,Object> repMap = new HashMap<>();
+        repMap.put("vehicle_type", queryVehicles.getVehicleType());
+        repMap.put("vehicle_location", queryVehicles.getVehicleLocation());
+        repMap.put("vehicle_id", queryVehicles.getVehicleId());
+        repMap.put("vehicle_reservation_id", queryReservation.getVehicleReservationId());
+        repMap.put("vehicle_start_date", queryReservation.getVehicleReservationStartDate());
+        repMap.put("vehicle_end_date", queryReservation.getVehicleReservationEndDate());
+        repMap.put("vehicle_total_price", queryReservation.getVehicleReservationTotalPrice());
+        return new Result(ResultCode.R_Ok, repMap);
     }
 
     @Override
@@ -174,13 +186,57 @@ public class UserVehicleServiceImpl implements UserVehicleService {
         LocalDateTime dateTime = queryVehicleReservation.getVehicleReservationStartDate().toLocalDateTime();
         LocalDateTime previousDay = dateTime.minusDays(1);
         Timestamp previousTimestamp = Timestamp.valueOf(previousDay);
+        // 超时自动取消预约
         if (vehicleTimestamp.after(previousTimestamp)) {
-            return new Result(ResultCode.R_ExceedCancelTime);
+            int vehicleId = queryVehicleReservation.getVehicleReservationVehicleId();
+            int vehicleReservationStatus = 1;
+            int vehicleStatus = 0;
+            Integer cancel = userVehicleMapper.cancelReservationById(vehicleReservationId,vehicleId,vehicleReservationStatus,vehicleStatus);
+            return new Result(cancel > 0 ?ResultCode.R_ExceedCancelTime:ResultCode.R_UpdateDbFailed);
         }
         int vehicleId = queryVehicleReservation.getVehicleReservationVehicleId();
         int vehicleReservationStatus = 1;
         int vehicleStatus = 0;
         Integer cancel = userVehicleMapper.cancelReservationById(vehicleReservationId,vehicleId,vehicleReservationStatus,vehicleStatus);
         return new Result(cancel > 0 ?ResultCode.R_Ok:ResultCode.R_UpdateDbFailed);
+    }
+    @Override
+    public Result uploadVehicleLocation(Map<String, Object> requestMap) {
+        //校验参数
+        if (requestMap == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Integer vehicleReservationId = (Integer) requestMap.get("vehicle_reservation_id");
+        String location = (String) requestMap.get("location");
+        if (vehicleReservationId == null || vehicleReservationId <= 0 || location == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+
+        //验证用户
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null) {
+            return new Result(ResultCode.R_UserNotFound);
+        }
+
+        //查询预约记录
+        VehiclesReservations queryVehicleReservation = userVehicleMapper.findReservationById(vehicleReservationId);
+        if (queryVehicleReservation == null) {
+            return new Result(ResultCode.R_ReservationNotFound);
+        }
+
+        //检查是否已到预约开始时间
+        long currentTime = System.currentTimeMillis();
+        Timestamp currentTimestamp = new Timestamp(currentTime);
+        Timestamp startTime = queryVehicleReservation.getVehicleReservationStartDate();        
+        if (currentTimestamp.before(startTime)) {
+            return new Result(ResultCode.R_NotStarted); 
+        }
+        //获取车辆ID并更新位置
+        int vehicleId = queryVehicleReservation.getVehicleReservationVehicleId();
+        if (vehicleId <= 0) {
+            return new Result(ResultCode.R_VehicleNotFound);
+        }
+        Integer updateLocation = userVehicleMapper.updateVehicleLocation(vehicleId, location);
+        return new Result(updateLocation > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
     }
 }
