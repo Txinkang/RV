@@ -4,10 +4,8 @@ import com.example.rv.Response.PageResponse;
 import com.example.rv.Response.Result;
 import com.example.rv.Response.ResultCode;
 import com.example.rv.mapper.user.UserCampgroundMapper;
-import com.example.rv.mapper.user.UserMapper;
 import com.example.rv.pojo.Campground;
 import com.example.rv.pojo.CampgroundReservations;
-import com.example.rv.pojo.Users;
 import com.example.rv.service.UserCampgroundService;
 import com.example.rv.utils.ThreadLocalUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,8 +24,6 @@ import java.util.Map;
 public class UserCampgroundServiceImpl implements UserCampgroundService {
     @Autowired
     private UserCampgroundMapper userCampgroundMapper;
-    @Autowired
-    private UserMapper userMapper;
 
     //把json转换成campground类对象
     private Campground convertToCampground(Object data) {
@@ -52,10 +48,10 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
         PageHelper.startPage(pageNum, pageSize);
         List<Campground> campgroundList;
         //判断传没传status
-        Map<String, Object> checkCampground = (Map<String, Object>) requestCampground;
-        if (checkCampground == null) {
+        if (!(requestCampground instanceof Map)) {
             return new Result(ResultCode.R_Fail);
         }
+        Map<String, Object> checkCampground = (Map<String, Object>) requestCampground;
         if (checkCampground.containsKey("campgroundStatus")) {
             //只允许查询状态为0～2的
             if (campground.getCampgroundStatus() < 0 || campground.getCampgroundStatus() > 2) {
@@ -66,13 +62,17 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
             campgroundList = userCampgroundMapper.findCampNoStatus(campground);
         }
         Page<Campground> campgroundPage = (Page<Campground>) campgroundList;
-        pageResponse.setTotal(campgroundPage.getTotal());
-        pageResponse.setItems(campgroundPage.getResult());
-        return new Result(ResultCode.R_Ok, pageResponse);
+        try {
+            pageResponse.setTotal(campgroundPage.getTotal());
+            pageResponse.setItems(campgroundPage.getResult());
+            return new Result(ResultCode.R_Ok, pageResponse);
+        } finally {
+            campgroundPage.close();
+        }
     }
 
     @Override
-    public Result campgroundReservation(CampgroundReservations campgroundReservations) {
+    public Result campgroundReservation(CampgroundReservations campgroundReservations) {                            
         int CampgroundId = campgroundReservations.getCampgroundReservationCampgroundId();
         Timestamp CampgroundStartDate = campgroundReservations.getCampgroundReservationStartDate();
         Timestamp CampgroundEndDate = campgroundReservations.getCampgroundReservationEndDate();
@@ -97,22 +97,18 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
             return new Result(ResultCode.R_DateError);
         }
         //验证预定人是否合格
-        Map<String, Object> userMap = ThreadLocalUtil.get();
-        if (userMap == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer renterId = (Integer) userMap.get("id");
+        Integer renterId = ThreadLocalUtil.getUserId();
         if (renterId == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer checkUser = userMapper.checkUserByUserId(renterId);
-        if (checkUser == null) {
             return new Result(ResultCode.R_UserNotFound);
         }
         CampgroundReservations isReserved = userCampgroundMapper.checkReservationByRenterId(renterId);
         if (isReserved != null) {
-            return new Result(ResultCode.R_IsReserved);
+            Timestamp reservationEndDate = isReserved.getCampgroundReservationEndDate();
+            if (currentTimestamp.before(reservationEndDate)) {
+                return new Result(ResultCode.R_IsReserved);
+            }
         }
+        
         //开始预定
         Integer reserveRowAffected = userCampgroundMapper.reserveCamp(campgroundReservations, renterId);
         if (reserveRowAffected > 0) {
@@ -125,16 +121,8 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
 
     @Override
     public Result checkBookedCampground() {
-        Map<String, Object> userMap = ThreadLocalUtil.get();
-        if (userMap == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer renterId = (Integer) userMap.get("id");
+        Integer renterId = ThreadLocalUtil.getUserId();
         if (renterId == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer checkUser = userMapper.checkUserByUserId(renterId);
-        if (checkUser == null) {
             return new Result(ResultCode.R_UserNotFound);
         }
         CampgroundReservations queryReservation = userCampgroundMapper.checkReservationByRenterId(renterId);
@@ -167,16 +155,8 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
             return new Result(ResultCode.R_ParamError);
         }
         //验证用户
-        Map<String, Object> userMap = ThreadLocalUtil.get();
-        if (userMap == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer userId = (Integer) userMap.get("id");
-        if (userId == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer queryUser = userMapper.checkUserByUserId(userId);
-        if (queryUser == null) {
+        Integer renterId = ThreadLocalUtil.getUserId();
+        if (renterId == null) {
             return new Result(ResultCode.R_UserNotFound);
         }
         //取消预约

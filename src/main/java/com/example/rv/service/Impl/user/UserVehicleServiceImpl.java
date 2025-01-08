@@ -25,8 +25,7 @@ import java.util.Map;
 public class UserVehicleServiceImpl implements UserVehicleService {
     @Autowired
     private UserVehicleMapper userVehicleMapper;
-    @Autowired
-    private UserMapper userMapper;
+
     //把json转换成vehicle类对象
     private Vehicles convertToVehicle(Object data) {
         ObjectMapper mapper = new ObjectMapper();
@@ -49,10 +48,10 @@ public class UserVehicleServiceImpl implements UserVehicleService {
         PageHelper.startPage(pageNum, pageSize);
         List<Vehicles> vehicleList;
         //判断传没传status
-        Map<String, Object> checkVehicle = (Map<String, Object>) requestVehicle;
-        if (checkVehicle == null) {
+        if (!(requestVehicle instanceof Map)) {
             return new Result(ResultCode.R_Fail);
         }
+        Map<String, Object> checkVehicle = (Map<String, Object>) requestVehicle;
         if (checkVehicle.containsKey("vehicleStatus")) {
             //只允许查询状态为0～2的
             if (vehicle.getVehicleStatus() < 0 || vehicle.getVehicleStatus() > 2) {
@@ -63,9 +62,13 @@ public class UserVehicleServiceImpl implements UserVehicleService {
             vehicleList = userVehicleMapper.findVehicleNoStatus(vehicle);
         }
         Page<Vehicles> vehiclePage = (Page<Vehicles>) vehicleList;
-        pageResponse.setTotal(vehiclePage.getTotal());
-        pageResponse.setItems(vehiclePage.getResult());
-        return new Result(ResultCode.R_Ok, pageResponse);
+        try {
+            pageResponse.setTotal(vehiclePage.getTotal());
+            pageResponse.setItems(vehiclePage.getResult());
+            return new Result(ResultCode.R_Ok, pageResponse);
+        } finally {
+            vehiclePage.close();
+        }
     }
 
     @Override
@@ -94,21 +97,17 @@ public class UserVehicleServiceImpl implements UserVehicleService {
             return new Result(ResultCode.R_DateError);
         }
         //验证预定人是否合格
-        Map<String, Object> userMap = ThreadLocalUtil.get();
-        if (userMap == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer renterId = (Integer) userMap.get("id");
+        Integer renterId = ThreadLocalUtil.getUserId();
         if (renterId == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer checkUser = userMapper.checkUserByUserId(renterId);
-        if (checkUser == null) {
             return new Result(ResultCode.R_UserNotFound);
         }
+        //检查当前预定是否已到结束时间
         VehiclesReservations isReserved = userVehicleMapper.checkReservationByRenterId(renterId);
         if (isReserved != null) {
-            return new Result(ResultCode.R_IsReserved);
+            Timestamp reservationEndDate = isReserved.getVehicleReservationEndDate();
+            if (currentTimestamp.before(reservationEndDate)) {
+                return new Result(ResultCode.R_IsReserved);
+            }
         }
         //开始预定
         Integer reserveRowAffected = userVehicleMapper.reserveVehicle(vehiclesReservations, renterId);
@@ -122,16 +121,8 @@ public class UserVehicleServiceImpl implements UserVehicleService {
 
     @Override
     public Result checkBookedVehicle() {
-        Map<String, Object> userMap = ThreadLocalUtil.get();
-        if (userMap == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer renterId = (Integer) userMap.get("id");
+        Integer renterId = ThreadLocalUtil.getUserId();
         if (renterId == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer checkUser = userMapper.checkUserByUserId(renterId);
-        if (checkUser == null) {
             return new Result(ResultCode.R_UserNotFound);
         }
         VehiclesReservations queryReservation = userVehicleMapper.checkReservationByRenterId(renterId);
@@ -164,16 +155,8 @@ public class UserVehicleServiceImpl implements UserVehicleService {
             return new Result(ResultCode.R_ParamError);
         }
         //验证用户
-        Map<String, Object> userMap = ThreadLocalUtil.get();
-        if (userMap == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer userId = (Integer) userMap.get("id");
+        Integer userId = ThreadLocalUtil.getUserId();
         if (userId == null) {
-            return new Result(ResultCode.R_Error);
-        }
-        Integer queryUser = userMapper.checkUserByUserId(userId);
-        if (queryUser == null) {
             return new Result(ResultCode.R_UserNotFound);
         }
         //取消预约
@@ -200,6 +183,7 @@ public class UserVehicleServiceImpl implements UserVehicleService {
         Integer cancel = userVehicleMapper.cancelReservationById(vehicleReservationId,vehicleId,vehicleReservationStatus,vehicleStatus);
         return new Result(cancel > 0 ?ResultCode.R_Ok:ResultCode.R_UpdateDbFailed);
     }
+    
     @Override
     public Result uploadVehicleLocation(Map<String, Object> requestMap) {
         //校验参数
