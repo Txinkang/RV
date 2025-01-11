@@ -2,7 +2,6 @@ package com.example.rv.mapper.user;
 
 import com.example.rv.pojo.Campground;
 import com.example.rv.pojo.CampgroundReservations;
-import com.example.rv.pojo.VehiclesReservations;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
