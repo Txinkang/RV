@@ -21,4 +21,6 @@ public interface BusinessCampgroundService {
      * @return Result
      */
     Result checkCampgroundList();
+
+    Result updateCampground(Campground campground, List<MultipartFile> campgroundPicture);
 }

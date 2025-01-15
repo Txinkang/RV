@@ -17,6 +17,7 @@ public class BusinessCampgroundController {
 
     @Autowired
     private BusinessCampgroundService businessCampgroundService;
+    
     @PostMapping("/uploadCampground")
     public Result uploadCampground(
             @RequestPart("campground") Campground campground,
@@ -30,4 +31,10 @@ public class BusinessCampgroundController {
     }
 
 
+    @PatchMapping("/updateCampground")
+    public Result updateCampground(
+        @RequestPart("campground") Campground campground,
+        @RequestParam("campgroundPictures") List<MultipartFile> campgroundPicture){
+        return businessCampgroundService.updateCampground(campground, campgroundPicture);
+    }
 }

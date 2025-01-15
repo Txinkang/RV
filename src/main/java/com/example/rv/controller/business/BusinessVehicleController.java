@@ -1,9 +1,7 @@
 package com.example.rv.controller.business;
 
 import com.example.rv.Response.Result;
-import com.example.rv.pojo.Campground;
 import com.example.rv.pojo.Vehicles;
-import com.example.rv.service.BusinessCampgroundService;
 import com.example.rv.service.BusinessVehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -25,4 +23,5 @@ public class BusinessVehicleController {
             @RequestParam("vehiclePictures") List<MultipartFile> vehiclePictures){
         return businessVehicleService.uploadVehicle(vehicle,vehiclePictures);
     }
+
 }
