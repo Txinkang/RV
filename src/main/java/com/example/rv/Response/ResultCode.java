@@ -47,6 +47,8 @@ public enum ResultCode {
     R_PaymentNotSuccess(429,"该订单未支付成功，不可开具发票"),
     R_PaymentNotGenerateInvoice(430,"该订单暂未生成发票"),
     R_NotStarted(431,"未到开始时间"),
+    R_CampNotOwner(432,"该营地不属于该用户"),
+    R_CampNotMaintenance(433,"该营地未处于可维护状态"),
 
 
 

@@ -4,6 +4,7 @@ import com.example.rv.pojo.Campground;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -29,5 +30,17 @@ public interface BusinessCampMapper {
             "campground_facility_details = #{campgroundFacilityDetails}, campground_price = #{campgroundPrice}," +
             "campground_picture = #{campgroundPicture}, campground_status = #{campgroundStatus} where campground_id = #{campgroundId}")
     Integer updateCampground(Campground campground);
+
+    @Select("select * from campground where campground_id = #{campgroundId}")
+    Campground checkCampBycampgroundId(Integer campgroundId);
+
+    @Delete("delete from campground where campground_id = #{campgroundId}")
+    Integer deleteCampground(Integer campgroundId);
+
+    @Insert("insert into campground_maintenance (campground_maintenance_campground_id, campground_maintenance_details, campground_maintenance_status) values (#{campgroundId}, #{maintenanceDetails}, 0)")
+    Integer addCampgroundMaintenance(Integer campgroundId, String maintenanceDetails);
+
+    @Update("update campground set campground_status = #{campgroundStatus} where campground_id = #{campgroundId}")
+    Integer updateCampgroundStatus(Integer campgroundId, Integer campgroundStatus);
 
 }

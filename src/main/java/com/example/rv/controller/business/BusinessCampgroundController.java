@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Validated
 @RestController
@@ -36,5 +37,17 @@ public class BusinessCampgroundController {
         @RequestPart("campground") Campground campground,
         @RequestParam("campgroundPictures") List<MultipartFile> campgroundPicture){
         return businessCampgroundService.updateCampground(campground, campgroundPicture);
+    }
+
+    @DeleteMapping("/deleteCampground")
+    public Result deleteCampground(
+        @RequestBody Campground campground){
+        return businessCampgroundService.deleteCampground(campground);
+    }
+
+    @PostMapping("/maintenanceCampground")
+    public Result maintenanceCampground(
+        @RequestBody Map<String, Object> requestBody){
+        return businessCampgroundService.maintenanceCampground(requestBody);
     }
 }

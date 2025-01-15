@@ -137,16 +137,15 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
             return new Result(ResultCode.R_CampIsExist);
         }
         // 检查营地
-        Campground existingCampground = businessCampMapper.checkCampgroundList(ownerId).stream()
-                .filter(c -> c.getCampgroundId() == campground.getCampgroundId())
-                .findFirst()
-                .orElse(null);
-                
+        Campground existingCampground = businessCampMapper.checkCampBycampgroundId(campground.getCampgroundId());
         if (existingCampground == null) {
             return new Result(ResultCode.R_CampNotFound);
         }
         if (existingCampground.getCampgroundStatus() == 1) {
             return new Result(ResultCode.R_CampAlreadyReserved);
+        }
+        if (existingCampground.getCampgroundOwnerId() != ownerId) {
+            return new Result(ResultCode.R_CampNotOwner);
         }
         // 操作图片
         List<String> pictureNames = new ArrayList<>();
@@ -183,6 +182,65 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
             campground.setCampgroundPrice(existingCampground.getCampgroundPrice());
         }
         Integer rowAffected = businessCampMapper.updateCampground(campground);
+        return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
+    }
+
+    @Override
+    public Result deleteCampground(Campground campground) {
+        if (campground == null || campground.getCampgroundId() < 1) {
+            return new Result(ResultCode.R_ParamError);
+        }   
+        Campground existingCampground = businessCampMapper.checkCampBycampgroundId(campground.getCampgroundId());
+        if (existingCampground == null) {
+            return new Result(ResultCode.R_CampNotFound);
+        }
+        if (existingCampground.getCampgroundStatus() == 1) {
+            return new Result(ResultCode.R_CampAlreadyReserved);
+        }
+        Integer ownerId = ThreadLocalUtil.getUserId();  
+        if (ownerId == null || ownerId <= 0) {
+            return new Result(ResultCode.R_Error);
+        }
+        if (existingCampground.getCampgroundOwnerId() != ownerId) {
+            return new Result(ResultCode.R_CampNotOwner);
+        }
+        Integer rowAffected = businessCampMapper.deleteCampground(campground.getCampgroundId());
+        return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
+    }
+
+    @Override
+    public Result maintenanceCampground(Map<String, Object> requestBody) {
+        if (requestBody == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        if (!requestBody.containsKey("campgroundId") || !requestBody.containsKey("maintenanceDetails")) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Integer campgroundId = (Integer) requestBody.get("campgroundId");
+        String maintenanceDetails = (String) requestBody.get("maintenanceDetails");
+        if (campgroundId < 1 || Strings.isEmpty(maintenanceDetails)) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Campground campground = businessCampMapper.checkCampBycampgroundId(campgroundId);
+        if (campground == null) {
+            return new Result(ResultCode.R_CampNotFound);
+        }
+        if (campground.getCampgroundStatus() != 0) {
+            return new Result(ResultCode.R_CampNotMaintenance);
+        }
+        Integer ownerId = ThreadLocalUtil.getUserId();
+        if (ownerId == null || ownerId <= 0) {
+            return new Result(ResultCode.R_Error);
+        }
+        if (campground.getCampgroundOwnerId() != ownerId) {
+            return new Result(ResultCode.R_CampNotOwner);
+        }
+        Integer maintenanceRowAffected = businessCampMapper.addCampgroundMaintenance(campgroundId, maintenanceDetails);
+        if (maintenanceRowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        Integer campgroundStatus = 2;
+        Integer rowAffected = businessCampMapper.updateCampgroundStatus(campgroundId, campgroundStatus);
         return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
     }
 }

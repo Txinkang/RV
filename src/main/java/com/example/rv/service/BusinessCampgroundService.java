@@ -5,6 +5,7 @@ import com.example.rv.pojo.Campground;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface BusinessCampgroundService {
     /**
@@ -23,4 +24,8 @@ public interface BusinessCampgroundService {
     Result checkCampgroundList();
 
     Result updateCampground(Campground campground, List<MultipartFile> campgroundPicture);
+
+    Result deleteCampground(Campground campground);
+
+    Result maintenanceCampground(Map<String, Object> requestBody);
 }
