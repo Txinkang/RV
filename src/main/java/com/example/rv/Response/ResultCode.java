@@ -49,7 +49,7 @@ public enum ResultCode {
     R_NotStarted(431,"未到开始时间"),
     R_CampNotOwner(432,"该营地不属于该用户"),
     R_CampNotMaintenance(433,"该营地未处于可维护状态"),
-
+    R_CampMaintenanceNotFound(434,"该营地维护信息不存在"),
 
 
 

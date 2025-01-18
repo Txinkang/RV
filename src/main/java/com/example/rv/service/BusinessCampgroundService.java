@@ -28,4 +28,8 @@ public interface BusinessCampgroundService {
     Result deleteCampground(Campground campground);
 
     Result maintenanceCampground(Map<String, Object> requestBody);
+
+    Result campMaintenanceCancel(Map<String, Object> requestBody);
+
+    Result campMaintenanceComplete(Map<String, Object> requestBody);
 }

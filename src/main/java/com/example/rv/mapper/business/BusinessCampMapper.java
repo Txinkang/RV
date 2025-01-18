@@ -1,6 +1,7 @@
 package com.example.rv.mapper.business;
 
 import com.example.rv.pojo.Campground;
+import com.example.rv.pojo.CampgroundMaintenance;
 
 import java.util.List;
 
@@ -42,5 +43,11 @@ public interface BusinessCampMapper {
 
     @Update("update campground set campground_status = #{campgroundStatus} where campground_id = #{campgroundId}")
     Integer updateCampgroundStatus(Integer campgroundId, Integer campgroundStatus);
+
+    @Update("update campground_maintenance set campground_maintenance_status = #{campgroundMaintenanceStatus} where campground_maintenance_id = #{campgroundMaintenanceId}")
+    Integer updateCampgroundMaintenanceStatus(Integer campgroundMaintenanceId, Integer campgroundMaintenanceStatus);
+
+    @Select("select * from campground_maintenance where campground_maintenance_campground_id = #{campgroundId} and campground_maintenance_status = #{maintenanceStatus}")
+    CampgroundMaintenance checkCampgroundMaintenance(Integer campgroundId, Integer maintenanceStatus);
 
 }

@@ -4,6 +4,7 @@ import com.example.rv.Response.Result;
 import com.example.rv.Response.ResultCode;
 import com.example.rv.mapper.business.BusinessCampMapper;
 import com.example.rv.pojo.Campground;
+import com.example.rv.pojo.CampgroundMaintenance;
 import com.example.rv.service.BusinessCampgroundService;
 import com.example.rv.utils.FileUtil;
 import com.example.rv.utils.LogUtil;
@@ -243,4 +244,104 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
         Integer rowAffected = businessCampMapper.updateCampgroundStatus(campgroundId, campgroundStatus);
         return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
     }
+
+    @Override
+    public Result campMaintenanceCancel(Map<String, Object> requestBody) {
+        //验证参数
+        if (requestBody == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        if (!requestBody.containsKey("campgroundId")) {
+            return new Result(ResultCode.R_ParamError);
+        }   
+        Integer campgroundId = (Integer) requestBody.get("campgroundId");
+        if (campgroundId < 1) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        //验证营地
+        Campground campground = businessCampMapper.checkCampBycampgroundId(campgroundId);
+        if (campground == null) {
+            return new Result(ResultCode.R_CampNotFound);
+        }
+        if (campground.getCampgroundStatus() != 2) {
+            return new Result(ResultCode.R_CampNotMaintenance);
+        }
+        //验证用户
+        Integer ownerId = ThreadLocalUtil.getUserId();
+        if (ownerId == null || ownerId <= 0) {
+            return new Result(ResultCode.R_Error);
+        }
+        if (campground.getCampgroundOwnerId() != ownerId) {
+            return new Result(ResultCode.R_CampNotOwner);   
+        }
+        //更新营地状态
+        Integer rowAffected = businessCampMapper.updateCampgroundStatus(campgroundId, 0);
+        if (rowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        // 查找维护信息
+        Integer maintenanceStatus = 0;
+        CampgroundMaintenance maintenance = businessCampMapper.checkCampgroundMaintenance(campgroundId, maintenanceStatus);
+        if (maintenance == null) {
+            return new Result(ResultCode.R_CampMaintenanceNotFound);
+        }
+        // 更新维护信息
+        Integer campMaintenceStatus = 2;
+        Integer maintenanceRowAffected = businessCampMapper.updateCampgroundMaintenanceStatus(maintenance.getCampgroundMaintenanceId(), campMaintenceStatus);
+        if (maintenanceRowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        return new Result(ResultCode.R_Ok);
+    }
+
+    @Override
+    public Result campMaintenanceComplete(Map<String, Object> requestBody) {
+        //验证参数
+        if (requestBody == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        if (!requestBody.containsKey("campgroundId")) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Integer campgroundId = (Integer) requestBody.get("campgroundId");
+        if (campgroundId < 1) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        //验证营地
+        Campground campground = businessCampMapper.checkCampBycampgroundId(campgroundId);
+        if (campground == null) {
+            return new Result(ResultCode.R_CampNotFound);
+        }
+        if (campground.getCampgroundStatus() != 2) {
+            return new Result(ResultCode.R_CampNotMaintenance);
+        }
+        //验证用户
+        Integer ownerId = ThreadLocalUtil.getUserId();
+        if (ownerId == null || ownerId <= 0) {
+            return new Result(ResultCode.R_Error);
+        }
+        if (campground.getCampgroundOwnerId() != ownerId) {
+            return new Result(ResultCode.R_CampNotOwner);
+        }
+        //更新营地状态
+        Integer campgroundStatus = 0;
+        Integer rowAffected = businessCampMapper.updateCampgroundStatus(campgroundId, campgroundStatus);
+        if (rowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        // 查找维护信息
+        Integer maintenanceStatus = 0;
+        CampgroundMaintenance maintenance = businessCampMapper.checkCampgroundMaintenance(campgroundId, maintenanceStatus);
+        if (maintenance == null) {
+            return new Result(ResultCode.R_CampMaintenanceNotFound);
+        }
+        // 更新维护信息
+        Integer campMaintenceStatus = 1;
+        Integer maintenanceRowAffected = businessCampMapper.updateCampgroundMaintenanceStatus(maintenance.getCampgroundMaintenanceId(), campMaintenceStatus);
+        if (maintenanceRowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        return new Result(ResultCode.R_Ok);
+    }   
 }
+

@@ -50,4 +50,17 @@ public class BusinessCampgroundController {
         @RequestBody Map<String, Object> requestBody){
         return businessCampgroundService.maintenanceCampground(requestBody);
     }
+
+    @PostMapping("/campMaintenanceCancel")
+    public Result campMaintenanceCancel(
+        @RequestBody Map<String, Object> requestBody){
+        return businessCampgroundService.campMaintenanceCancel(requestBody);
+    }
+
+    @PostMapping("/campMaintenanceComplete")
+    public Result campMaintenanceComplete(
+        @RequestBody Map<String, Object> requestBody){
+        return businessCampgroundService.campMaintenanceComplete(requestBody);
+    }
+
 }
