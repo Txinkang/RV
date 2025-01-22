@@ -8,6 +8,7 @@ import com.example.rv.service.BusinessVehicleService;
 import com.example.rv.utils.FileUtil;
 import com.example.rv.utils.LogUtil;
 import com.example.rv.utils.ThreadLocalUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.logging.log4j.util.Strings;
@@ -17,8 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class BusinessVehicleServiceImpl implements BusinessVehicleService {
@@ -78,4 +81,159 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         logUtil.error("uploadVehicle error in step : ", runStep);
         return new Result(ResultCode.R_Error);
     }
+
+
+    @Override
+    public Result checkVehicleList() {
+        Integer ownerId = ThreadLocalUtil.getUserId();
+        if (ownerId == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        List<Vehicles> vehicleList = businessVehicleMapper.checkVehicleList(ownerId);
+        if (vehicleList == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        // Convert JSON picture strings to arrays for each vehicle
+        for (Vehicles vehicle : vehicleList) {
+            try {
+                String pictureJson = vehicle.getVehiclePicture();
+                if (!Strings.isEmpty(pictureJson)) {
+                    String[] pictureArray = new ObjectMapper().readValue(pictureJson, String[].class);
+                    vehicle.setVehiclePicture(Arrays.toString(pictureArray));
+                }
+            } catch (JsonProcessingException e) {
+                logUtil.error("Error parsing vehicle pictures JSON: ", e);
+                return new Result(ResultCode.R_Error);
+            }
+        }
+        return new Result(ResultCode.R_Ok, vehicleList);
+    }
+
+    @SneakyThrows
+    @Override
+    public Result updateVehicle(Vehicles vehicle, List<MultipartFile> vehiclePictures) {
+        Integer ownerId = ThreadLocalUtil.getUserId();
+        if (ownerId == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        if (vehicle == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        if (vehicle.getVehicleId() < 1) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        // 检查车辆
+        Vehicles existingVehicle = businessVehicleMapper.checkVehicleByvehicleId(vehicle.getVehicleId());
+        if (existingVehicle == null) {
+            return new Result(ResultCode.R_VehicleNotFound);
+        }
+        if (existingVehicle.getVehicleStatus() == 1) {
+            return new Result(ResultCode.R_VehicleAlreadyReserved);
+        }
+        if (existingVehicle.getVehicleOwnerId() != ownerId) {
+            return new Result(ResultCode.R_VehicleNotOwner);
+        }
+        
+        // 传入参数为空时，使用原有数据
+        if (vehicle.getVehiclePrice() <= 0) {
+            vehicle.setVehiclePrice(existingVehicle.getVehiclePrice());
+        }
+        if (vehicle.getVehicleLocation() == null || Strings.isEmpty(vehicle.getVehicleLocation())) {
+            vehicle.setVehicleLocation(existingVehicle.getVehicleLocation());
+        }
+        if (vehicle.getVehicleDescription() == null || Strings.isEmpty(vehicle.getVehicleDescription())) {
+            vehicle.setVehicleDescription(existingVehicle.getVehicleDescription());
+        }
+        if (vehicle.getVehicleType() == null || !vehicle.getVehicleType().equals("A") || !vehicle.getVehicleType().equals("B")) {
+            vehicle.setVehicleType(existingVehicle.getVehicleType());
+        }
+        
+        // 操作图片
+        List<String> pictureNames = new ArrayList<>();
+        if (vehiclePictures != null && !vehiclePictures.isEmpty() && !Strings.isEmpty(vehiclePictures.get(0).getOriginalFilename())) {
+            for (MultipartFile picture : vehiclePictures) {
+                if (picture.isEmpty()) {
+                    continue;
+                }
+                String originalFilename = picture.getOriginalFilename();
+                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                String newFileName = UUID.randomUUID().toString() + extension;
+                pictureNames.add(newFileName);
+            }
+            //将文件名列表转换为 JSON 字符串
+            String pictureNamesJson = new ObjectMapper().writeValueAsString(pictureNames);
+            if (Strings.isEmpty(pictureNamesJson)) {
+                    return new Result(ResultCode.R_Error);
+            }
+            vehicle.setVehiclePicture(pictureNamesJson);
+        }else {
+            vehicle.setVehiclePicture(existingVehicle.getVehiclePicture());
+        }
+        // 更新车辆
+        Integer rowAffected = businessVehicleMapper.updateVehicle(vehicle);
+        if (rowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        return new Result(ResultCode.R_Ok);
+    }
+
+    @Override
+    public Result deleteVehicle(Vehicles vehicle) {
+        if (vehicle == null || vehicle.getVehicleId() < 1) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Vehicles existingVehicle = businessVehicleMapper.checkVehicleByvehicleId(vehicle.getVehicleId());
+        if (existingVehicle == null) {
+            return new Result(ResultCode.R_VehicleNotFound);
+        }
+        if (existingVehicle.getVehicleStatus() == 1) {
+            return new Result(ResultCode.R_VehicleAlreadyReserved);
+        }
+        Integer ownerId = ThreadLocalUtil.getUserId();
+        if (ownerId == null || ownerId <= 0) {
+            return new Result(ResultCode.R_Error);
+        }
+        if (existingVehicle.getVehicleOwnerId() != ownerId) {
+            return new Result(ResultCode.R_VehicleNotOwner);
+        }
+        Integer rowAffected = businessVehicleMapper.deleteVehicle(vehicle.getVehicleId());
+        return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
+    }
+
+    @Override
+    public Result maintenanceVehicle(Map<String, Object> requestBody) {
+        if (requestBody == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        if (!requestBody.containsKey("vehicleId") || !requestBody.containsKey("maintenanceDetails")) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Integer vehicleId = (Integer) requestBody.get("vehicleId");
+        String maintenanceDetails = (String) requestBody.get("maintenanceDetails");
+        if (vehicleId < 1 || Strings.isEmpty(maintenanceDetails)) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Vehicles vehicle = businessVehicleMapper.checkVehicleByvehicleId(vehicleId);
+        if (vehicle == null) {
+            return new Result(ResultCode.R_VehicleNotFound);
+        }
+        if (vehicle.getVehicleStatus() != 0) {
+            return new Result(ResultCode.R_VehicleNotMaintenance);
+        }
+        Integer ownerId = ThreadLocalUtil.getUserId();
+        if (ownerId == null || ownerId <= 0) {
+            return new Result(ResultCode.R_Error);
+        }
+        if (vehicle.getVehicleOwnerId() != ownerId) {
+            return new Result(ResultCode.R_VehicleNotOwner);
+        }
+        Integer maintenanceRowAffected = businessVehicleMapper.addVehicleMaintenance(vehicleId, maintenanceDetails);
+        if (maintenanceRowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        Integer vehicleStatus = 2;
+        Integer rowAffected = businessVehicleMapper.updateVehicleStatus(vehicleId, vehicleStatus);
+        return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
+    }
 }
+

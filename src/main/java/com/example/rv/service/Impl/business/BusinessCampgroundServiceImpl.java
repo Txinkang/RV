@@ -48,11 +48,6 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
         ) {
             return new Result(ResultCode.R_ParamError);
         }
-        String campgroundName = businessCampMapper.checkCampBycampgroundName(campground.getCampgroundName());
-        String campgroundLocation = businessCampMapper.checkCampBycampgroundLocation(campground.getCampgroundLocation());
-        if (!Strings.isEmpty(campgroundName) || !Strings.isEmpty(campgroundLocation)){
-            return new Result(ResultCode.R_CampIsExist);
-        }
         //操作文件
         List<String> fileNames = new ArrayList<>();
         int runStep = 0;
@@ -128,14 +123,8 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
         if (campground == null) {
             return new Result(ResultCode.R_ParamError);
         }
-        if (campground.getCampgroundPrice() < 0 || campground.getCampgroundId() < 1
-        ) {
+        if (campground.getCampgroundId() < 1) {
             return new Result(ResultCode.R_ParamError);
-        }
-        String campgroundName = businessCampMapper.checkCampBycampgroundName(campground.getCampgroundName());
-        String campgroundLocation = businessCampMapper.checkCampBycampgroundLocation(campground.getCampgroundLocation());
-        if (!Strings.isEmpty(campgroundName) || !Strings.isEmpty(campgroundLocation)){
-            return new Result(ResultCode.R_CampIsExist);
         }
         // 检查营地
         Campground existingCampground = businessCampMapper.checkCampBycampgroundId(campground.getCampgroundId());
@@ -147,6 +136,19 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
         }
         if (existingCampground.getCampgroundOwnerId() != ownerId) {
             return new Result(ResultCode.R_CampNotOwner);
+        }
+        // 传入参数为空时，使用原有数据
+        if (campground.getCampgroundName() == null || Strings.isEmpty(campground.getCampgroundName())) {
+            campground.setCampgroundName(existingCampground.getCampgroundName());
+        }
+        if (campground.getCampgroundLocation() == null || Strings.isEmpty(campground.getCampgroundLocation())) {
+            campground.setCampgroundLocation(existingCampground.getCampgroundLocation());
+        }
+        if (campground.getCampgroundFacilityDetails() == null || Strings.isEmpty(campground.getCampgroundFacilityDetails())) {
+            campground.setCampgroundFacilityDetails(existingCampground.getCampgroundFacilityDetails());
+        }
+        if (campground.getCampgroundPrice() <= 0) {
+            campground.setCampgroundPrice(existingCampground.getCampgroundPrice());
         }
         // 操作图片
         List<String> pictureNames = new ArrayList<>();
@@ -170,20 +172,11 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
             campground.setCampgroundPicture(existingCampground.getCampgroundPicture());
         }
         // 更新数据库
-        if (Strings.isEmpty(campground.getCampgroundName())) {
-            campground.setCampgroundName(existingCampground.getCampgroundName());
-        }
-        if (Strings.isEmpty(campground.getCampgroundLocation())) {
-            campground.setCampgroundLocation(existingCampground.getCampgroundLocation());
-        }
-        if (Strings.isEmpty(campground.getCampgroundFacilityDetails())) {
-            campground.setCampgroundFacilityDetails(existingCampground.getCampgroundFacilityDetails());
-        }
-        if (campground.getCampgroundPrice() <= 0) {
-            campground.setCampgroundPrice(existingCampground.getCampgroundPrice());
-        }
         Integer rowAffected = businessCampMapper.updateCampground(campground);
-        return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
+        if (rowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        return new Result(ResultCode.R_Ok);
     }
 
     @Override

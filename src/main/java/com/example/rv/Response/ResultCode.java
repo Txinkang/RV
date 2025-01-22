@@ -29,12 +29,12 @@ public enum ResultCode {
     R_CampIsExist(411,"该营地已存在，请检查名称或地址是否正确"),
     R_DateError(412,"预定时间错误"),
     R_CampNotFound(413,"营地不存在"),
-    R_CampAlreadyReserved(414,"该营地不可预定"),
+    R_CampAlreadyReserved(414,"该营地已被预定"),
     R_PriceIsLow(415,"预定价格过低"),
     R_IsReserved(416,"用户已有预定"),
     R_UserNotReserved(417,"用户暂无预定"),
     R_VehicleNotFound(418,"车辆不存在"),
-    R_VehicleAlreadyReserved(419,"该车辆不可预定"),
+    R_VehicleAlreadyReserved(419,"该车辆已被预定"),
     R_ReservationNotFound(420,"未找到该预定信息"),
     R_UserNoBalance(421,"该用户余额不足"),
     R_SignedContractFailed(422,"签署合同失败"),
@@ -50,6 +50,9 @@ public enum ResultCode {
     R_CampNotOwner(432,"该营地不属于该用户"),
     R_CampNotMaintenance(433,"该营地未处于可维护状态"),
     R_CampMaintenanceNotFound(434,"该营地维护信息不存在"),
+    R_VehicleNotOwner(435,"该车辆不属于该用户"),
+    R_VehicleNotMaintenance(436,"该车辆未处于可维护状态"),
+    R_VehicleMaintenanceNotFound(437,"该车辆维护信息不存在"),
 
 
 

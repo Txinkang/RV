@@ -5,6 +5,7 @@ import com.example.rv.pojo.Vehicles;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface BusinessVehicleService {
     /**
@@ -14,4 +15,12 @@ public interface BusinessVehicleService {
      * @return Result
      */
     Result uploadVehicle(Vehicles vehicle, List<MultipartFile> vehiclePictures);
+
+    Result checkVehicleList();
+
+    Result updateVehicle(Vehicles vehicle, List<MultipartFile> vehiclePictures);
+
+    Result deleteVehicle(Vehicles vehicle);
+
+    Result maintenanceVehicle(Map<String, Object> requestBody);
 }

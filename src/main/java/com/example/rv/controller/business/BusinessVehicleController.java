@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Validated
 @RestController
@@ -24,4 +25,25 @@ public class BusinessVehicleController {
         return businessVehicleService.uploadVehicle(vehicle,vehiclePictures);
     }
 
+    @GetMapping("/checkVehicleList")
+    public Result checkVehicleList(){
+        return businessVehicleService.checkVehicleList();
+    }
+
+    @PatchMapping("/updateVehicle")
+    public Result updateVehicle(
+            @RequestPart("vehicle") Vehicles vehicle,
+            @RequestParam("vehiclePictures") List<MultipartFile> vehiclePictures) {
+        return businessVehicleService.updateVehicle(vehicle, vehiclePictures);
+    }
+
+    @DeleteMapping("/deleteVehicle")
+    public Result deleteVehicle(@RequestBody Vehicles vehicle) {
+        return businessVehicleService.deleteVehicle(vehicle);
+    }
+
+    @PostMapping("/maintenanceVehicle")
+    public Result maintenanceVehicle(@RequestBody Map<String, Object> requestBody) {
+        return businessVehicleService.maintenanceVehicle(requestBody);
+    }
 }
