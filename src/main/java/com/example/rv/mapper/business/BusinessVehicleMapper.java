@@ -1,5 +1,6 @@
 package com.example.rv.mapper.business;
 
+import com.example.rv.pojo.VehicleMaintenance;
 import com.example.rv.pojo.Vehicles;
 
 import java.util.List;
@@ -35,4 +36,10 @@ public interface BusinessVehicleMapper {
 
     @Update("update vehicles set vehicle_status = #{vehicleStatus} where vehicle_id = #{vehicleId}")
     Integer updateVehicleStatus(Integer vehicleId, Integer vehicleStatus);
+
+    @Select("select * from vehicle_maintenance where vehicle_maintenance_vehicle_id = #{vehicleId} and vehicle_maintenance_status = #{maintenanceStatus}")
+    VehicleMaintenance checkVehicleMaintenance(Integer vehicleId, Integer maintenanceStatus);
+
+    @Update("update vehicle_maintenance set vehicle_maintenance_status = #{vehicleMaintenceStatus} where vehicle_maintenance_id = #{vehicleMaintenanceId}")
+    Integer updateVehicleMaintenanceStatus(int vehicleMaintenanceId, Integer vehicleMaintenceStatus);
 }

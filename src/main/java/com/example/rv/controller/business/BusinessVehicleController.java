@@ -46,4 +46,24 @@ public class BusinessVehicleController {
     public Result maintenanceVehicle(@RequestBody Map<String, Object> requestBody) {
         return businessVehicleService.maintenanceVehicle(requestBody);
     }
+
+    @PostMapping("/checkVehicleLocation")
+    public Result checkVehicleLocation(@RequestBody Map<String, Object> requestBody) {
+        return businessVehicleService.checkVehicleLocation(requestBody);
+    }
+
+    @PostMapping("/returnVehicle")
+    public Result returnVehicle(@RequestBody Map<String, Object> requestBody) {
+        return businessVehicleService.returnVehicle(requestBody);
+    }
+
+    @PostMapping("/vehicleMaintenanceCancel")
+    public Result vehicleMaintenanceCancel(@RequestBody Map<String, Object> requestBody) {
+        return businessVehicleService.vehicleMaintenanceCancel(requestBody);
+    }
+
+    @PostMapping("/vehicleMaintenanceComplete")
+    public Result vehicleMaintenanceComplete(@RequestBody Map<String, Object> requestBody) {
+        return businessVehicleService.vehicleMaintenanceComplete(requestBody);
+    }
 }

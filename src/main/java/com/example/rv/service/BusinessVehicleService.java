@@ -23,4 +23,14 @@ public interface BusinessVehicleService {
     Result deleteVehicle(Vehicles vehicle);
 
     Result maintenanceVehicle(Map<String, Object> requestBody);
+
+    Result checkVehicleLocation(Map<String, Object> requestBody);
+
+    Result returnVehicle(Map<String, Object> requestBody);
+
+    Result vehicleMaintenanceCancel(Map<String, Object> requestBody);
+
+    Result vehicleMaintenanceComplete(Map<String, Object> requestBody);
 }
+
+

@@ -267,7 +267,7 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
         if (campground.getCampgroundOwnerId() != ownerId) {
             return new Result(ResultCode.R_CampNotOwner);   
         }
-        //更新营地状态
+        // 更新营地状态
         Integer rowAffected = businessCampMapper.updateCampgroundStatus(campgroundId, 0);
         if (rowAffected <= 0) {
             return new Result(ResultCode.R_UpdateDbFailed);

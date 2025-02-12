@@ -3,6 +3,7 @@ package com.example.rv.service.Impl.business;
 import com.example.rv.Response.Result;
 import com.example.rv.Response.ResultCode;
 import com.example.rv.mapper.business.BusinessVehicleMapper;
+import com.example.rv.pojo.VehicleMaintenance;
 import com.example.rv.pojo.Vehicles;
 import com.example.rv.service.BusinessVehicleService;
 import com.example.rv.utils.FileUtil;
@@ -235,5 +236,150 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         Integer rowAffected = businessVehicleMapper.updateVehicleStatus(vehicleId, vehicleStatus);
         return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
     }
+
+
+    @Override
+    public Result checkVehicleLocation(Map<String, Object> requestBody) {
+        if (requestBody == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        if (!requestBody.containsKey("vehicleId")) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Integer vehicleId = (Integer) requestBody.get("vehicleId");
+        if (vehicleId < 1) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Vehicles vehicle = businessVehicleMapper.checkVehicleByvehicleId(vehicleId);
+        if (vehicle == null) {
+            return new Result(ResultCode.R_VehicleNotFound);
+        }
+        return new Result(ResultCode.R_Ok, vehicle.getVehicleLocation());
+    }
+
+
+    @Override
+    public Result returnVehicle(Map<String, Object> requestBody) {
+        if (requestBody == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        if (!requestBody.containsKey("vehicleId")) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Integer vehicleId = (Integer) requestBody.get("vehicleId");
+        if (vehicleId < 1) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Vehicles vehicle = businessVehicleMapper.checkVehicleByvehicleId(vehicleId);
+        if (vehicle == null) {
+            return new Result(ResultCode.R_VehicleNotFound);
+        }
+        if (vehicle.getVehicleStatus() != 0 && vehicle.getVehicleStatus() != 1) {
+            return new Result(ResultCode.R_Fail);
+        }
+        Integer rowAffected = businessVehicleMapper.updateVehicleStatus(vehicleId, 0);
+        return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
+    }
+
+
+    @Override
+    public Result vehicleMaintenanceCancel(Map<String, Object> requestBody) {
+        // 验证参数
+        if (requestBody == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        if (!requestBody.containsKey("vehicleId")) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Integer vehicleId = (Integer) requestBody.get("vehicleId");
+        if (vehicleId < 1) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        // 验证车辆
+        Vehicles vehicle = businessVehicleMapper.checkVehicleByvehicleId(vehicleId);
+        if (vehicle == null) {
+            return new Result(ResultCode.R_VehicleNotFound);
+        }
+        if (vehicle.getVehicleStatus() != 2) {
+            return new Result(ResultCode.R_VehicleNotMaintenance);
+        }
+        // 验证用户
+        Integer ownerId = ThreadLocalUtil.getUserId();
+        if (ownerId == null || ownerId <= 0) {
+            return new Result(ResultCode.R_Error);
+        }
+        if (vehicle.getVehicleOwnerId() != ownerId) {
+            return new Result(ResultCode.R_VehicleNotOwner);
+        }
+        // 更新车辆状态
+        Integer rowAffected = businessVehicleMapper.updateVehicleStatus(vehicleId, 0);
+        if (rowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        // 查找维护信息
+        Integer maintenanceStatus = 0;
+        VehicleMaintenance maintenance = businessVehicleMapper.checkVehicleMaintenance(vehicleId, maintenanceStatus);
+        if (maintenance == null) {
+            return new Result(ResultCode.R_VehicleMaintenanceNotFound);
+        }
+        // 更新维护信息
+        Integer vehicleMaintenceStatus = 2;
+        Integer maintenanceRowAffected = businessVehicleMapper.updateVehicleMaintenanceStatus(maintenance.getVehicleMaintenanceId(), vehicleMaintenceStatus);
+        if (maintenanceRowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        return new Result(ResultCode.R_Ok);
+    }
+
+
+    @Override
+    public Result vehicleMaintenanceComplete(Map<String, Object> requestBody) {
+        //验证参数
+        if (requestBody == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        if (!requestBody.containsKey("vehicleId")) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Integer vehicleId = (Integer) requestBody.get("vehicleId");
+        if (vehicleId < 1) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        // 验证车辆
+        Vehicles vehicle = businessVehicleMapper.checkVehicleByvehicleId(vehicleId);
+        if (vehicle == null) {
+            return new Result(ResultCode.R_VehicleNotFound);
+        }
+        if (vehicle.getVehicleStatus() != 2) {
+            return new Result(ResultCode.R_VehicleNotMaintenance);
+        }
+        // 验证用户
+        Integer ownerId = ThreadLocalUtil.getUserId();
+        if (ownerId == null || ownerId <= 0) {
+            return new Result(ResultCode.R_Error);
+        }
+        if (vehicle.getVehicleOwnerId() != ownerId) {
+            return new Result(ResultCode.R_VehicleNotOwner);
+        }
+        // 更新车辆状态
+        Integer rowAffected = businessVehicleMapper.updateVehicleStatus(vehicleId, 0);
+        if (rowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        // 查找维护信息
+        Integer maintenanceStatus = 0;
+        VehicleMaintenance maintenance = businessVehicleMapper.checkVehicleMaintenance(vehicleId, maintenanceStatus);
+        if (maintenance == null) {
+            return new Result(ResultCode.R_VehicleMaintenanceNotFound);
+        }
+        // 更新维护信息
+        Integer vehicleMaintenceStatus = 1;
+        Integer maintenanceRowAffected = businessVehicleMapper.updateVehicleMaintenanceStatus(maintenance.getVehicleMaintenanceId(), vehicleMaintenceStatus);
+        if (maintenanceRowAffected <= 0) {
+            return new Result(ResultCode.R_UpdateDbFailed);
+        }
+        return new Result(ResultCode.R_Ok);
+    }
 }
+
 
