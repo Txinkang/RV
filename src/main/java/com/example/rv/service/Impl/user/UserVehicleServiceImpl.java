@@ -30,6 +30,7 @@ public class UserVehicleServiceImpl implements UserVehicleService {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.convertValue(data, Vehicles.class);
     }
+    
     @Override
     public Result checkVehicleList(Map<String, Object> requestMap) {
         Object requestVehicle = requestMap.get("vehicle");
@@ -58,7 +59,12 @@ public class UserVehicleServiceImpl implements UserVehicleService {
             }
             vehicleList = userVehicleMapper.findVehicleHasStatus(vehicle);
         } else {
-            vehicleList = userVehicleMapper.findVehicleNoStatus(vehicle);
+            vehicle.setVehicleStatus(0);
+            vehicleList = userVehicleMapper.findVehicleHasStatus(vehicle);
+            vehicle.setVehicleStatus(1);
+            vehicleList.addAll(userVehicleMapper.findVehicleHasStatus(vehicle));
+            vehicle.setVehicleStatus(2);
+            vehicleList.addAll(userVehicleMapper.findVehicleHasStatus(vehicle));
         }
         Page<Vehicles> vehiclePage = (Page<Vehicles>) vehicleList;
         try {

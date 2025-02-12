@@ -1,122 +1,100 @@
-package com.example.rv.service.Impl.business;
-
-import com.example.rv.Response.Result;
-import com.example.rv.Response.ResultCode;
-import com.example.rv.mapper.business.BusinessVehicleMapper;
-import com.example.rv.pojo.VehicleMaintenance;
-import com.example.rv.pojo.Vehicles;
-import com.example.rv.service.BusinessVehicleService;
-import com.example.rv.utils.FileUtil;
-import com.example.rv.utils.LogUtil;
-import com.example.rv.utils.ThreadLocalUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
-import org.apache.logging.log4j.util.Strings;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+package com.example.rv.service.Impl.admin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Service
-public class BusinessVehicleServiceImpl implements BusinessVehicleService {
-    public static final LogUtil logUtil = LogUtil.getLogger(BusinessVehicleServiceImpl.class);
+import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-    @Value("${uploadFilePath.vehiclePicturesPath}")
-    private String vehiclePicturesPath;
+import com.example.rv.Response.PageResponse;
+import com.example.rv.Response.Result;
+import com.example.rv.Response.ResultCode;
+import com.example.rv.mapper.admin.AdminVehicleMapper;
+import com.example.rv.mapper.business.BusinessVehicleMapper;
+import com.example.rv.mapper.user.UserVehicleMapper;
+import com.example.rv.pojo.Campground;
+import com.example.rv.pojo.VehicleMaintenance;
+import com.example.rv.pojo.Vehicles;
+import com.example.rv.service.AdminVehicleService;
+import com.example.rv.utils.ThreadLocalUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+
+import lombok.SneakyThrows;
+
+@Service
+public class AdminVehicleServiceImpl implements AdminVehicleService {
+    //把json转换成vehicle类对象
+    private Vehicles convertToVehicle(Object data) {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.convertValue(data, Vehicles.class);
+    }
+
+    @Autowired
+    private AdminVehicleMapper adminVehicleMapper;
+
+    @Autowired
+    private UserVehicleMapper userVehicleMapper;
+
     @Autowired
     private BusinessVehicleMapper businessVehicleMapper;
 
-    @SneakyThrows
     @Override
-    public Result uploadVehicle(Vehicles vehicle, List<MultipartFile> vehiclePictures) {
+    public Result checkVehicleList(Map<String, Object> requestMap) {
         //验证参数
-        if (vehicle == null || vehiclePictures.isEmpty()) {
+        if (requestMap == null) {
             return new Result(ResultCode.R_ParamError);
         }
-        boolean vehicleType = "A".equals(vehicle.getVehicleType()) || "B".equals(vehicle.getVehicleType());
-        if (!vehicleType || Strings.isEmpty(vehicle.getVehicleType()) || Strings.isEmpty(vehicle.getVehicleLocation()) ||
-                Strings.isEmpty(vehicle.getVehicleDescription()) || vehicle.getVehiclePrice() <= 0
-        ) {
+        
+        //获取分页参数
+        Integer pageNum = (Integer) requestMap.get("pageNum");
+        Integer pageSize = (Integer) requestMap.get("pageSize");
+        if (pageNum == null || pageSize == null || pageNum <= 0 || pageSize <= 0) {
             return new Result(ResultCode.R_ParamError);
         }
-        //操作文件
-        List<String> fileNames = new ArrayList<>();
-        int runStep = 0;
-        do {
-            //拿取所有照片文件
-            for (MultipartFile vehiclePicture : vehiclePictures) {
-                String uniqueFileName = FileUtil.saveFile(vehiclePicture, vehiclePicturesPath);
-                if (uniqueFileName == null) {
-                    return new Result(ResultCode.R_SaveFileError);
-                }
-                fileNames.add(uniqueFileName);
-            }
-            //获取需要的数据
-            Map<String, Object> userMap = ThreadLocalUtil.get();
-            if (userMap == null) {
-                runStep = 1;
-                break;
-            }
-            Integer ownerId = (Integer) userMap.get("id");
-            if (ownerId <= 0) {
-                runStep = 2;
-                break;
-            }
-            //将文件名列表转换为 JSON 字符串
-            String pictureNamesJson = new ObjectMapper().writeValueAsString(fileNames);
-            if (Strings.isEmpty(pictureNamesJson)) {
-                runStep = 3;
-                break;
-            }
-            vehicle.setVehicleOwnerId(ownerId);
-            Integer rowAffected = businessVehicleMapper.addVehicle(vehicle, pictureNamesJson);
-            return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
-        } while (false);
-        logUtil.error("uploadVehicle error in step : ", runStep);
-        return new Result(ResultCode.R_Error);
-    }
 
+        //获取营地查询条件
+        Object requestVehicle = requestMap.get("vehicle");
+        if (requestVehicle == null) {
+            return new Result(ResultCode.R_ParamError); 
+        }
+        Vehicles vehicle = convertToVehicle(requestVehicle);
+        if (vehicle.getVehiclePrice() < 0) {
+            return new Result(ResultCode.R_ParamError);
+        }
 
-    @Override
-    public Result checkVehicleList() {
-        Integer ownerId = ThreadLocalUtil.getUserId();
-        if (ownerId == null) {
-            return new Result(ResultCode.R_Error);
+        //设置分页查询
+        PageResponse<Vehicles> pageResponse = new PageResponse<>();
+        PageHelper.startPage(pageNum, pageSize);
+        List<Vehicles> vehicleList;
+        //判断传没传status
+        if (!(requestVehicle instanceof Map)) {
+            return new Result(ResultCode.R_Fail);
         }
-        List<Vehicles> vehicleList = businessVehicleMapper.checkVehicleList(ownerId);
-        if (vehicleList == null) {
-            return new Result(ResultCode.R_Error);
+        Map<String, Object> checkVehicle = (Map<String, Object>) requestVehicle;
+        if (checkVehicle.containsKey("vehicleStatus")) {
+            vehicleList = userVehicleMapper.findVehicleHasStatus(vehicle);
+        } else {
+            vehicleList = userVehicleMapper.findVehicleNoStatus(vehicle);
         }
-        // Convert JSON picture strings to arrays for each vehicle
-        for (Vehicles vehicle : vehicleList) {
-            try {
-                String pictureJson = vehicle.getVehiclePicture();
-                if (!Strings.isEmpty(pictureJson)) {
-                    String[] pictureArray = new ObjectMapper().readValue(pictureJson, String[].class);
-                    vehicle.setVehiclePicture(Arrays.toString(pictureArray));
-                }
-            } catch (JsonProcessingException e) {
-                logUtil.error("Error parsing vehicle pictures JSON: ", e);
-                return new Result(ResultCode.R_Error);
-            }
+        Page<Vehicles> vehiclePage = (Page<Vehicles>) vehicleList;
+        try {
+            pageResponse.setTotal(vehiclePage.getTotal());
+            pageResponse.setItems(vehiclePage.getResult());
+            return new Result(ResultCode.R_Ok, pageResponse);
+        } finally {
+            vehiclePage.close();
         }
-        return new Result(ResultCode.R_Ok, vehicleList);
     }
 
     @SneakyThrows
     @Override
     public Result updateVehicle(Vehicles vehicle, List<MultipartFile> vehiclePictures) {
-        Integer ownerId = ThreadLocalUtil.getUserId();
-        if (ownerId == null) {
-            return new Result(ResultCode.R_Error);
-        }
         if (vehicle == null) {
             return new Result(ResultCode.R_ParamError);
         }
@@ -130,9 +108,6 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         }
         if (existingVehicle.getVehicleStatus() == 1) {
             return new Result(ResultCode.R_VehicleAlreadyReserved);
-        }
-        if (existingVehicle.getVehicleOwnerId() != ownerId) {
-            return new Result(ResultCode.R_VehicleNotOwner);
         }
         
         // 传入参数为空时，使用原有数据
@@ -191,13 +166,6 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         if (existingVehicle.getVehicleStatus() == 1) {
             return new Result(ResultCode.R_VehicleAlreadyReserved);
         }
-        Integer ownerId = ThreadLocalUtil.getUserId();
-        if (ownerId == null || ownerId <= 0) {
-            return new Result(ResultCode.R_Error);
-        }
-        if (existingVehicle.getVehicleOwnerId() != ownerId) {
-            return new Result(ResultCode.R_VehicleNotOwner);
-        }
         Integer vehicleStatus = 99;
         Integer rowAffected = businessVehicleMapper.updateVehicleStatus(vehicle.getVehicleId(), vehicleStatus);
         return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
@@ -223,13 +191,6 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         if (vehicle.getVehicleStatus() != 0) {
             return new Result(ResultCode.R_VehicleNotMaintenance);
         }
-        Integer ownerId = ThreadLocalUtil.getUserId();
-        if (ownerId == null || ownerId <= 0) {
-            return new Result(ResultCode.R_Error);
-        }
-        if (vehicle.getVehicleOwnerId() != ownerId) {
-            return new Result(ResultCode.R_VehicleNotOwner);
-        }
         Integer maintenanceRowAffected = businessVehicleMapper.addVehicleMaintenance(vehicleId, maintenanceDetails);
         if (maintenanceRowAffected <= 0) {
             return new Result(ResultCode.R_UpdateDbFailed);
@@ -238,6 +199,7 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         Integer rowAffected = businessVehicleMapper.updateVehicleStatus(vehicleId, vehicleStatus);
         return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
     }
+
 
     @Override
     public Result checkVehicleLocation(Map<String, Object> requestBody) {
@@ -257,6 +219,7 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         }
         return new Result(ResultCode.R_Ok, vehicle.getVehicleLocation());
     }
+
 
     @Override
     public Result returnVehicle(Map<String, Object> requestBody) {
@@ -281,6 +244,7 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
     }
 
+
     @Override
     public Result vehicleMaintenanceCancel(Map<String, Object> requestBody) {
         // 验证参数
@@ -302,14 +266,6 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         if (vehicle.getVehicleStatus() != 2) {
             return new Result(ResultCode.R_VehicleNotMaintenance);
         }
-        // 验证用户
-        Integer ownerId = ThreadLocalUtil.getUserId();
-        if (ownerId == null || ownerId <= 0) {
-            return new Result(ResultCode.R_Error);
-        }
-        if (vehicle.getVehicleOwnerId() != ownerId) {
-            return new Result(ResultCode.R_VehicleNotOwner);
-        }
         // 更新车辆状态
         Integer rowAffected = businessVehicleMapper.updateVehicleStatus(vehicleId, 0);
         if (rowAffected <= 0) {
@@ -329,6 +285,7 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         }
         return new Result(ResultCode.R_Ok);
     }
+
 
     @Override
     public Result vehicleMaintenanceComplete(Map<String, Object> requestBody) {
@@ -351,14 +308,6 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         if (vehicle.getVehicleStatus() != 2) {
             return new Result(ResultCode.R_VehicleNotMaintenance);
         }
-        // 验证用户
-        Integer ownerId = ThreadLocalUtil.getUserId();
-        if (ownerId == null || ownerId <= 0) {
-            return new Result(ResultCode.R_Error);
-        }
-        if (vehicle.getVehicleOwnerId() != ownerId) {
-            return new Result(ResultCode.R_VehicleNotOwner);
-        }
         // 更新车辆状态
         Integer rowAffected = businessVehicleMapper.updateVehicleStatus(vehicleId, 0);
         if (rowAffected <= 0) {
@@ -379,5 +328,3 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
         return new Result(ResultCode.R_Ok);
     }
 }
-
-

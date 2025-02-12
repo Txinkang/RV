@@ -53,7 +53,8 @@ public enum ResultCode {
     R_VehicleNotOwner(435,"该车辆不属于该用户"),
     R_VehicleNotMaintenance(436,"该车辆未处于可维护状态"),
     R_VehicleMaintenanceNotFound(437,"该车辆维护信息不存在"),
-
+    R_AdminNotFound(438,"管理员不存在"),
+    R_AdminPasswordError(439,"管理员密码错误"),
 
 
 

@@ -59,7 +59,12 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
             }
             campgroundList = userCampgroundMapper.findCampHasStatus(campground);
         } else {
-            campgroundList = userCampgroundMapper.findCampNoStatus(campground);
+            campground.setCampgroundStatus(0);
+            campgroundList = userCampgroundMapper.findCampHasStatus(campground);
+            campground.setCampgroundStatus(1);
+            campgroundList.addAll(userCampgroundMapper.findCampHasStatus(campground));
+            campground.setCampgroundStatus(2);
+            campgroundList.addAll(userCampgroundMapper.findCampHasStatus(campground));
         }
         Page<Campground> campgroundPage = (Page<Campground>) campgroundList;
         try {

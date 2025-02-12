@@ -37,17 +37,19 @@ public class CheckTokenInterceptor implements HandlerInterceptor {
                 break;
             }
             String redisKey = RedisConstData.USER_LOGIN_TOKEN + userMap.get("id");
-            if (Strings.isEmpty(redisKey)){
+            String redisKeyAdmin = RedisConstData.ADMIN_LOGIN_TOKEN + userMap.get("id");
+            if (Strings.isEmpty(redisKey) && Strings.isEmpty(redisKeyAdmin)){
                 runStep = 3;
                 break;
             }
             String redisToken = redisService.get(redisKey);
-            if (Strings.isEmpty(redisToken)){
+            String redisTokenAdmin = redisService.get(redisKeyAdmin);
+            if (redisToken == null && redisTokenAdmin == null){
                 runStep = 4;
                 break;
             }
             //万一刷新了之后前端没更新，token不相等也算过期。
-            if (!redisToken.equals(token)){
+            if (redisToken != null && !redisToken.equals(token) || redisTokenAdmin != null && !redisTokenAdmin.equals(token)){
                 runStep = 5;
                 break;
             }
