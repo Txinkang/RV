@@ -55,7 +55,7 @@ public enum ResultCode {
     R_VehicleMaintenanceNotFound(437,"该车辆维护信息不存在"),
     R_AdminNotFound(438,"管理员不存在"),
     R_AdminPasswordError(439,"管理员密码错误"),
-
+    R_NoAuthority(440,"该用户没有权限"),
 
 
 

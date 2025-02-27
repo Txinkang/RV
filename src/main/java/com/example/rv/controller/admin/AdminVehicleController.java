@@ -28,10 +28,10 @@ public class AdminVehicleController {
     public Result checkVehicleList(@RequestBody Map<String,Object> requestMap){
         return adminVehicleService.checkVehicleList(requestMap);
     }
-    @PatchMapping("/updateVehicle")
+    @PostMapping("/updateVehicle")
     public Result updateVehicle(
             @RequestPart("vehicle") Vehicles vehicle,
-            @RequestParam("vehiclePictures") List<MultipartFile> vehiclePictures) {
+            @RequestParam(value = "vehiclePictures", required = false) List<MultipartFile> vehiclePictures) {
         return adminVehicleService.updateVehicle(vehicle, vehiclePictures);
     }
 

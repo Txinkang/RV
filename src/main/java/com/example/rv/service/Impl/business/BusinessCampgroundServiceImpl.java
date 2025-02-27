@@ -3,8 +3,10 @@ package com.example.rv.service.Impl.business;
 import com.example.rv.Response.Result;
 import com.example.rv.Response.ResultCode;
 import com.example.rv.mapper.business.BusinessCampMapper;
+import com.example.rv.mapper.user.UserMapper;
 import com.example.rv.pojo.Campground;
 import com.example.rv.pojo.CampgroundMaintenance;
+import com.example.rv.pojo.Users;
 import com.example.rv.service.BusinessCampgroundService;
 import com.example.rv.utils.FileUtil;
 import com.example.rv.utils.LogUtil;
@@ -33,6 +35,9 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
     @Autowired
     private static final LogUtil logUtil = LogUtil.getLogger(BusinessCampgroundServiceImpl.class);
     
+    @Autowired
+    private UserMapper userMapper;
+    
     @Value("${uploadFilePath.campgroundPicturesPath}")
     private String campgroundPicturesPath;
    
@@ -47,6 +52,17 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
                 Strings.isEmpty(campground.getCampgroundFacilityDetails()) || campground.getCampgroundPrice() <= 0
         ) {
             return new Result(ResultCode.R_ParamError);
+        }
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null || userId <= 0) {
+            return new Result(ResultCode.R_Error);
+        }
+        Users user = userMapper.findByUserId(userId);
+        if (user == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        if (user.getUserRole() != 1) {
+            return new Result(ResultCode.R_NoAuthority);
         }
         //操作文件
         List<String> fileNames = new ArrayList<>();
@@ -157,10 +173,15 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
                 if (picture.isEmpty()) {
                     continue;
                 }
-                String originalFilename = picture.getOriginalFilename();
-                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-                String newFileName = UUID.randomUUID().toString() + extension;
-                pictureNames.add(newFileName);
+                String uniqueFileName = FileUtil.saveFile(picture, campgroundPicturesPath);
+                if (Strings.isEmpty(uniqueFileName)) {
+                    break;
+                }
+                pictureNames.add(uniqueFileName);
+//                String originalFilename = picture.getOriginalFilename();
+//                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+//                String newFileName = UUID.randomUUID().toString() + extension;
+//                pictureNames.add(newFileName);
             }
             //将文件名列表转换为 JSON 字符串
             String pictureNamesJson = new ObjectMapper().writeValueAsString(pictureNames);

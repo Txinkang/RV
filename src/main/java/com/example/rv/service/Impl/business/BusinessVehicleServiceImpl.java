@@ -3,6 +3,8 @@ package com.example.rv.service.Impl.business;
 import com.example.rv.Response.Result;
 import com.example.rv.Response.ResultCode;
 import com.example.rv.mapper.business.BusinessVehicleMapper;
+import com.example.rv.mapper.user.UserMapper;
+import com.example.rv.pojo.Users;
 import com.example.rv.pojo.VehicleMaintenance;
 import com.example.rv.pojo.Vehicles;
 import com.example.rv.service.BusinessVehicleService;
@@ -30,8 +32,12 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
 
     @Value("${uploadFilePath.vehiclePicturesPath}")
     private String vehiclePicturesPath;
+    
     @Autowired
     private BusinessVehicleMapper businessVehicleMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @SneakyThrows
     @Override
@@ -45,6 +51,17 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
                 Strings.isEmpty(vehicle.getVehicleDescription()) || vehicle.getVehiclePrice() <= 0
         ) {
             return new Result(ResultCode.R_ParamError);
+        }
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null || userId <= 0) {
+            return new Result(ResultCode.R_Error);
+        }
+        Users user = userMapper.findByUserId(userId);
+        if (user == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        if (user.getUserRole() != 1) {
+            return new Result(ResultCode.R_NoAuthority);
         }
         //操作文件
         List<String> fileNames = new ArrayList<>();
@@ -157,10 +174,15 @@ public class BusinessVehicleServiceImpl implements BusinessVehicleService {
                 if (picture.isEmpty()) {
                     continue;
                 }
-                String originalFilename = picture.getOriginalFilename();
-                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-                String newFileName = UUID.randomUUID().toString() + extension;
-                pictureNames.add(newFileName);
+                String uniqueFileName = FileUtil.saveFile(picture, vehiclePicturesPath);
+                if (Strings.isEmpty(uniqueFileName)) {
+                    break;
+                }
+                pictureNames.add(uniqueFileName);
+//                String originalFilename = picture.getOriginalFilename();
+//                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+//                String newFileName = UUID.randomUUID().toString() + extension;
+//                pictureNames.add(newFileName);
             }
             //将文件名列表转换为 JSON 字符串
             String pictureNamesJson = new ObjectMapper().writeValueAsString(pictureNames);

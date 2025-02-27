@@ -38,8 +38,12 @@ public interface UserCampgroundMapper {
     @Select("select * from campground where campground_id = #{campgroundId}")
     Campground findCampByCampId(int campgroundId);
 
+//     @Select("select * from campground_reservations where (campground_reservation_renter_id = #{renterId}) " +
+//             "AND (campground_reservation_status in (0,2))")
+//     CampgroundReservations checkReservationByRenterId(Integer renterId);
     @Select("select * from campground_reservations where (campground_reservation_renter_id = #{renterId}) " +
-            "AND (campground_reservation_status in (0,2))")
+        "AND (campground_reservation_status in (0,2)) " +
+        "ORDER BY campground_reservation_updated_at DESC LIMIT 1")
     CampgroundReservations checkReservationByRenterId(Integer renterId);
     @Select("select * from campground_reservations where campground_reservation_id = #{campgroundReservationId}" )
     CampgroundReservations findReservationById(int campgroundReservationId);

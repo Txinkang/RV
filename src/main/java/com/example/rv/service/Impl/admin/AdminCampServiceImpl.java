@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.example.rv.utils.FileUtil;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,7 +45,9 @@ public class AdminCampServiceImpl implements AdminCampService {
 
     @Autowired
     private BusinessCampMapper businessCampMapper;
-    
+
+    @Value("${uploadFilePath.campgroundPicturesPath}")
+    private String campgroundPicturesPath;
     @Override
     public Result checkCampgroundList(Map<String, Object> requestMap) {
         //验证参数
@@ -129,10 +133,15 @@ public class AdminCampServiceImpl implements AdminCampService {
                 if (picture.isEmpty()) {
                     continue;
                 }
-                String originalFilename = picture.getOriginalFilename();
-                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-                String newFileName = UUID.randomUUID().toString() + extension;
-                pictureNames.add(newFileName);
+                String uniqueFileName = FileUtil.saveFile(picture, campgroundPicturesPath);
+                if (Strings.isEmpty(uniqueFileName)) {
+                    break;
+                }
+                pictureNames.add(uniqueFileName);
+//                String originalFilename = picture.getOriginalFilename();
+//                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+//                String newFileName = UUID.randomUUID().toString() + extension;
+//                pictureNames.add(newFileName);
             }
             //将文件名列表转换为 JSON 字符串
             String pictureNamesJson = new ObjectMapper().writeValueAsString(pictureNames);

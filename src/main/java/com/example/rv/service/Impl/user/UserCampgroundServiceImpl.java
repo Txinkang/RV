@@ -134,6 +134,9 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
         if (queryReservation == null) {
             return new Result(ResultCode.R_UserNotReserved);
         }
+        if (queryReservation.getCampgroundReservationEndDate().before(Timestamp.valueOf(LocalDateTime.now()))) {
+            return new Result(ResultCode.R_UserNotReserved);
+        }
         Campground queryCampground = userCampgroundMapper.findCampByCampId(queryReservation.getCampgroundReservationCampgroundId());
         if (queryCampground == null) {
             return new Result(ResultCode.R_CampNotFound);
@@ -146,6 +149,7 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
         repMap.put("camp_start_date", queryReservation.getCampgroundReservationStartDate());
         repMap.put("camp_end_date", queryReservation.getCampgroundReservationEndDate());
         repMap.put("camp_total_price", queryReservation.getCampgroundReservationTotalPrice());
+        repMap.put("camp_status", queryReservation.getCampgroundReservationStatus());
         return new Result(ResultCode.R_Ok, repMap);
     }
 
@@ -172,15 +176,15 @@ public class UserCampgroundServiceImpl implements UserCampgroundService {
         long campCurrentTime = System.currentTimeMillis();
         Timestamp campTimestamp = new Timestamp(campCurrentTime);
         LocalDateTime dateTime = queryCampReservation.getCampgroundReservationStartDate().toLocalDateTime();
-        LocalDateTime previousDay = dateTime.minusDays(1);
-        Timestamp previousTimestamp = Timestamp.valueOf(previousDay);
-        // 超时自动取消预约
+        Timestamp previousTimestamp = Timestamp.valueOf(dateTime);
+        // 超时无法取消预约
         if (campTimestamp.after(previousTimestamp)) {
-            int campgroundId = queryCampReservation.getCampgroundReservationCampgroundId();
-            int campReservationStatus = 1;
-            int campStatus = 0;
-            Integer cancel = userCampgroundMapper.cancelReservationById(campReservationId,campgroundId,campReservationStatus,campStatus);
-            return new Result(cancel > 0 ?ResultCode.R_ExceedCancelTime:ResultCode.R_UpdateDbFailed);
+            // int campgroundId = queryCampReservation.getCampgroundReservationCampgroundId();
+            // int campReservationStatus = 1;
+            // int campStatus = 0;
+            // Integer cancel = userCampgroundMapper.cancelReservationById(campReservationId,campgroundId,campReservationStatus,campStatus);
+            // return new Result(cancel > 0 ?ResultCode.R_ExceedCancelTime:ResultCode.R_UpdateDbFailed);
+            return new Result(ResultCode.R_ExceedCancelTime);
         }
         int campgroundId = queryCampReservation.getCampgroundReservationCampgroundId();
         int campReservationStatus = 1;

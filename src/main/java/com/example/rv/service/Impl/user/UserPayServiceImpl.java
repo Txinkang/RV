@@ -195,12 +195,11 @@ public class UserPayServiceImpl implements UserPayService {
                 if (vehiclesReservations == null) {
                     return new Result(ResultCode.R_ReservationNotFound);
                 }
-                //距离开始时间还有一天，则不让退款
+                //到达开始时间后，则不让退款
                 long vehicleCurrentTime = System.currentTimeMillis();
                 Timestamp vehicleTimestamp = new Timestamp(vehicleCurrentTime);
                 LocalDateTime dateTime = vehiclesReservations.getVehicleReservationStartDate().toLocalDateTime();
-                LocalDateTime previousDay = dateTime.minusDays(1);
-                Timestamp previousTimestamp = Timestamp.valueOf(previousDay);
+                Timestamp previousTimestamp = Timestamp.valueOf(dateTime);
                 if (vehicleTimestamp.after(previousTimestamp)) {
                     return new Result(ResultCode.R_ExceedRefundTime);
                 }
@@ -231,12 +230,11 @@ public class UserPayServiceImpl implements UserPayService {
                 if (campgroundReservations == null) {
                     return new Result(ResultCode.R_ReservationNotFound);
                 }
-                //距离开始时间还有一天，则不让退款
+                //到达开始时间后，则不让退款
                 long campCurrentTime = System.currentTimeMillis();
                 Timestamp campTimestamp = new Timestamp(campCurrentTime);
                 LocalDateTime dateTime = campgroundReservations.getCampgroundReservationStartDate().toLocalDateTime();
-                LocalDateTime previousDay = dateTime.minusDays(1);
-                Timestamp previousTimestamp = Timestamp.valueOf(previousDay);
+                Timestamp previousTimestamp = Timestamp.valueOf(dateTime);
                 if (campTimestamp.after(previousTimestamp)) {
                     return new Result(ResultCode.R_ExceedRefundTime);
                 }

@@ -26,6 +26,9 @@ public class WebConfig implements WebMvcConfigurer {
         excludePathList.add("/error");
         excludePathList.add("/admin/login");
         excludePathList.add("/admin/logout");
+        // 添加图片路径到排除列表
+        excludePathList.add("/images/**");  // 排除所有图片路径
+        excludePathList.add("/static/**");
         registry.addInterceptor(checkTokenInterceptor).addPathPatterns("/**").excludePathPatterns(excludePathList);
     }
 }

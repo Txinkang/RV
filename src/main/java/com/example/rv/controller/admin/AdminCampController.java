@@ -23,10 +23,10 @@ public class AdminCampController {
         return adminCampService.checkCampgroundList(requestMap);
     }
 
-    @PatchMapping("/updateCampground")
+    @PostMapping("/updateCampground")
     public Result updateCampground(
         @RequestPart("campground") Campground campground,
-        @RequestParam("campgroundPictures") List<MultipartFile> campgroundPictures){
+        @RequestParam(value = "campgroundPictures", required = false) List<MultipartFile> campgroundPictures){
         return adminCampService.updateCampground(campground, campgroundPictures);
     }
 

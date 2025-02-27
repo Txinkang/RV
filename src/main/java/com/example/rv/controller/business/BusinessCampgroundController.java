@@ -32,10 +32,10 @@ public class BusinessCampgroundController {
     }
 
 
-    @PatchMapping("/updateCampground")
+    @PostMapping("/updateCampground")
     public Result updateCampground(
         @RequestPart("campground") Campground campground,
-        @RequestParam("campgroundPictures") List<MultipartFile> campgroundPicture){
+        @RequestParam(value = "campgroundPictures", required = false) List<MultipartFile> campgroundPicture){
         return businessCampgroundService.updateCampground(campground, campgroundPicture);
     }
 

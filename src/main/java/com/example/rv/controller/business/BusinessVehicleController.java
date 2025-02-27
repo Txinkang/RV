@@ -30,10 +30,10 @@ public class BusinessVehicleController {
         return businessVehicleService.checkVehicleList();
     }
 
-    @PatchMapping("/updateVehicle")
+    @PostMapping("/updateVehicle")
     public Result updateVehicle(
             @RequestPart("vehicle") Vehicles vehicle,
-            @RequestParam("vehiclePictures") List<MultipartFile> vehiclePictures) {
+            @RequestParam(value = "vehiclePictures", required = false) List<MultipartFile> vehiclePictures) {
         return businessVehicleService.updateVehicle(vehicle, vehiclePictures);
     }
 

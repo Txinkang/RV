@@ -134,6 +134,9 @@ public class UserVehicleServiceImpl implements UserVehicleService {
         if (queryReservation == null) {
             return new Result(ResultCode.R_UserNotReserved);
         }
+        if (queryReservation.getVehicleReservationEndDate().before(Timestamp.valueOf(LocalDateTime.now()))) {
+            return new Result(ResultCode.R_UserNotReserved);
+        }
         Vehicles queryVehicles = userVehicleMapper.findVehicleByVehicleId(queryReservation.getVehicleReservationVehicleId());
         if (queryVehicles == null) {
             return new Result(ResultCode.R_VehicleNotFound);
@@ -146,6 +149,7 @@ public class UserVehicleServiceImpl implements UserVehicleService {
         repMap.put("vehicle_start_date", queryReservation.getVehicleReservationStartDate());
         repMap.put("vehicle_end_date", queryReservation.getVehicleReservationEndDate());
         repMap.put("vehicle_total_price", queryReservation.getVehicleReservationTotalPrice());
+        repMap.put("vehicle_status", queryReservation.getVehicleReservationStatus());
         return new Result(ResultCode.R_Ok, repMap);
     }
 
@@ -172,15 +176,14 @@ public class UserVehicleServiceImpl implements UserVehicleService {
         long vehicleCurrentTime = System.currentTimeMillis();
         Timestamp vehicleTimestamp = new Timestamp(vehicleCurrentTime);
         LocalDateTime dateTime = queryVehicleReservation.getVehicleReservationStartDate().toLocalDateTime();
-        LocalDateTime previousDay = dateTime.minusDays(1);
-        Timestamp previousTimestamp = Timestamp.valueOf(previousDay);
-        // 超时自动取消预约
+        Timestamp previousTimestamp = Timestamp.valueOf(dateTime);
+        // 超时无法取消预约
         if (vehicleTimestamp.after(previousTimestamp)) {
-            int vehicleId = queryVehicleReservation.getVehicleReservationVehicleId();
-            int vehicleReservationStatus = 1;
-            int vehicleStatus = 0;
-            Integer cancel = userVehicleMapper.cancelReservationById(vehicleReservationId,vehicleId,vehicleReservationStatus,vehicleStatus);
-            return new Result(cancel > 0 ?ResultCode.R_ExceedCancelTime:ResultCode.R_UpdateDbFailed);
+            // int vehicleId = queryVehicleReservation.getVehicleReservationVehicleId();
+            // int vehicleReservationStatus = 1;
+            // int vehicleStatus = 0;
+            // Integer cancel = userVehicleMapper.cancelReservationById(vehicleReservationId,vehicleId,vehicleReservationStatus,vehicleStatus);
+            return new Result(ResultCode.R_ExceedCancelTime);
         }
         int vehicleId = queryVehicleReservation.getVehicleReservationVehicleId();
         int vehicleReservationStatus = 1;

@@ -31,8 +31,12 @@ public interface UserVehicleMapper {
     @Select("select * from vehicles_reservations where vehicle_reservation_id = #{reservationsId}" )
     VehiclesReservations findReservationById(Integer reservationsId);
 
+//     @Select("select * from vehicles_reservations where (vehicle_reservation_renter_id = #{renterId}) " +
+//             "AND (vehicle_reservation_status = 0)")
+//     VehiclesReservations checkReservationByRenterId(Integer renterId);
     @Select("select * from vehicles_reservations where (vehicle_reservation_renter_id = #{renterId}) " +
-            "AND (vehicle_reservation_status in (0,2))")
+        "AND (vehicle_reservation_status in (0,2)) " +
+        "ORDER BY vehicle_reservation_updated_at DESC LIMIT 1")
     VehiclesReservations checkReservationByRenterId(Integer renterId);
 
     @Insert("insert into vehicles_reservations (vehicle_reservation_vehicle_id,vehicle_reservation_renter_id," +

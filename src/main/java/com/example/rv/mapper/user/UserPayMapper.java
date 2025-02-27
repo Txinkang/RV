@@ -59,17 +59,17 @@ public interface UserPayMapper {
             "and v.vehicle_id = #{vehicleId}")
     Integer refundVehicleByPaymentId(Integer paymentId, int vehicleId, int vehicleReservationId, int userId, int businessId, int paymentStatus, int vehicleStatus, int vehicleReservationStatus, BigDecimal refundPrice);
 
-    @Update("update users u1, users u2, payments p, vehicles_reservations vr, vehicles v " +
+    @Update("update users u1, users u2, payments p, campground_reservations cr, campground c " +
             "set u1.user_balance = u1.user_balance - CAST(#{refundPrice} AS DECIMAL(18, 2)), " +
             "u2.user_balance = u2.user_balance + CAST(#{refundPrice} AS DECIMAL(18, 2)), " +
             "p.payment_status = #{paymentStatus}, " +
-            "vr.vehicle_reservation_status = #{vehicleReservationStatus}, " +
-            "v.vehicle_status = #{vehicleStatus} " +
+            "cr.campground_reservation_status = #{campReservationStatus}, " +
+            "c.campground_status = #{campStatus} " +
             "where u1.user_id = #{businessId} " +
             "and u2.user_id = #{userId} " +
             "and p.payment_id = #{paymentId} " +
-            "and vr.vehicle_reservation_id = #{vehicleReservationId} " +
-            "and v.vehicle_id = #{vehicleId}")
+            "and cr.campground_reservation_id = #{campReservationId} " +
+            "and c.campground_id = #{campId}")
     Integer refundCampByPaymentId(Integer paymentId, int campId, int campReservationId, int userId, int businessId, int paymentStatus, int campStatus, int campReservationStatus, BigDecimal refundPrice);
 
     @Select("select * from payments where payment_vehicle_reservation_id = #{reservationId}")

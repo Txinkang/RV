@@ -20,7 +20,7 @@ spring:
     host: smtp.qq.com
     port: 587
     username: 2912528586@qq.com
-    password: mdzdjwgyvpfedfii
+    password: gmdodflztzcwdeii
     properties:
       mail:
         smtp:
@@ -39,11 +39,11 @@ spring:
     static-path-pattern: /images/**
   web:
     resources:
-      static-locations: file:/Users/tangxinkang/Projects/IDeaProjects/RV/src/main/resources/static
+      static-locations: file:${user.dir}/src/main/resources/static/
 #上传文件路径
 uploadFilePath:
-  campgroundPicturesPath: /Users/tangxinkang/Projects/IDeaProjects/RV/src/main/resources/static/campgroundPictures
-  vehiclePicturesPath: /Users/tangxinkang/Projects/IDeaProjects/RV/src/main/resources/static/vehiclePictures
+  campgroundPicturesPath: ${user.dir}/src/main/resources/static/campgroundPictures
+  vehiclePicturesPath: ${user.dir}/src/main/resources/static/vehiclePictures
 
 
 mybatis:
