@@ -41,7 +41,10 @@ public class AdminCampController {
         @RequestBody Map<String, Object> requestBody){
         return adminCampService.maintenanceCampground(requestBody);
     }
-
+    @PostMapping("/returnCamp")
+    public Result returnCamp(@RequestBody Map<String, Object> requestBody) {
+        return adminCampService.returnCamp(requestBody);
+    }
     @PostMapping("/campMaintenanceCancel")
     public Result campMaintenanceCancel(
         @RequestBody Map<String, Object> requestBody){

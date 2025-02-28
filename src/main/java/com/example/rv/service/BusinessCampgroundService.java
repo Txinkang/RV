@@ -32,4 +32,6 @@ public interface BusinessCampgroundService {
     Result campMaintenanceCancel(Map<String, Object> requestBody);
 
     Result campMaintenanceComplete(Map<String, Object> requestBody);
+
+    Result returnCamp(Map<String, Object> requestBody);
 }

@@ -7,6 +7,7 @@ import com.example.rv.mapper.user.UserMapper;
 import com.example.rv.pojo.Campground;
 import com.example.rv.pojo.CampgroundMaintenance;
 import com.example.rv.pojo.Users;
+import com.example.rv.pojo.Vehicles;
 import com.example.rv.service.BusinessCampgroundService;
 import com.example.rv.utils.FileUtil;
 import com.example.rv.utils.LogUtil;
@@ -357,6 +358,29 @@ public class BusinessCampgroundServiceImpl implements BusinessCampgroundService 
             return new Result(ResultCode.R_UpdateDbFailed);
         }
         return new Result(ResultCode.R_Ok);
-    }   
+    }
+
+    @Override
+    public Result returnCamp(Map<String, Object> requestBody) {
+        if (requestBody == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        if (!requestBody.containsKey("campgroundId")) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Integer campgroundId = (Integer) requestBody.get("campgroundId");
+        if (campgroundId < 1) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        Campground camp = businessCampMapper.checkCampBycampgroundId(campgroundId);
+        if (camp == null) {
+            return new Result(ResultCode.R_CampNotFound);
+        }
+        if (camp.getCampgroundStatus() != 0 && camp.getCampgroundStatus() != 1) {
+            return new Result(ResultCode.R_Fail);
+        }
+        Integer rowAffected = businessCampMapper.updateCampgroundStatus(campgroundId, 0);
+        return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
+    }
 }
 

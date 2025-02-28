@@ -31,6 +31,10 @@ spring:
           starttls:
             enable: true
             required: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
   #将参数以时间戳返回
   jackson:
     serialization:
