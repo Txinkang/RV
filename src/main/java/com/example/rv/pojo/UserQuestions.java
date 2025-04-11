@@ -9,6 +9,7 @@ public class UserQuestions {
   private int userQuestionUserId;
   private String userQuestionDetails;
   private int userQuestionStatus;
+  private String userQuestionAnswer;
   private java.sql.Timestamp userQuestionCreatedAt;
   private java.sql.Timestamp userQuestionUpdatedAt;
 

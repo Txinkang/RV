@@ -8,8 +8,11 @@ import com.example.rv.mapper.user.UserPayMapper;
 import com.example.rv.mapper.user.UserVehicleMapper;
 import com.example.rv.pojo.*;
 import com.example.rv.service.UserPayService;
+import com.example.rv.service.common.EmailService;
 import com.example.rv.utils.ThreadLocalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,6 +30,9 @@ public class UserPayServiceImpl implements UserPayService {
     private UserVehicleMapper userVehicleMapper;
     @Autowired
     private UserCampgroundMapper userCampgroundMapper;
+
+    @Autowired(required = false)
+    private JavaMailSender mailSender;
 
     @Override
     public Result recharge(BigDecimal amount) {
@@ -47,6 +53,21 @@ public class UserPayServiceImpl implements UserPayService {
             return new Result(ResultCode.R_UserNotFound);
         }
         Integer rowAffected = userPayMapper.rechargeByUserId(amount, checkUser);
+        if (rowAffected > 0){
+            // 发送邮件通知充值成功
+            Users queryUser = userMapper.findByUserId(userId);
+            if (queryUser == null){
+                return new Result(ResultCode.R_UserNotFound);
+            }
+            String email = queryUser.getUserEmail();
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(email);
+            message.setSubject("充值成功通知");
+            message.setText("您已成功充值，充值金额为: " + amount + "\n" +
+                    "感谢您的支持，祝您旅途愉快！");
+            message.setFrom("2912528586@qq.com");
+            mailSender.send(message);
+        }
         return new Result(rowAffected > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
     }
 
@@ -119,6 +140,19 @@ public class UserPayServiceImpl implements UserPayService {
                 if (vehicleCompletePay < 1) {
                     return new Result(ResultCode.R_PaymentFailed);
                 }
+                // 发送邮件通知付款成功
+                String email = queryUser.getUserEmail();
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setTo(email);
+                message.setSubject("付款成功通知");
+                message.setText("您已成功支付车辆预定费用，预定信息如下：\n" +
+                        "预定ID: " + vehicleReservationId + "\n" +
+                        "开始日期: " + vehiclesReservations.getVehicleReservationStartDate() + "\n" +
+                        "结束日期: " + vehiclesReservations.getVehicleReservationEndDate() + "\n" +
+                        "总金额: " + vehicleTotalPrice + "\n" +
+                        "感谢您的支持，祝您旅途愉快！");
+                message.setFrom("2912528586@qq.com");
+                mailSender.send(message);
             }
             case 1 -> {
                 int campgroundReservationId = payment.getPaymentCampgroundReservationId();
@@ -169,6 +203,19 @@ public class UserPayServiceImpl implements UserPayService {
                 if (campCompletePay < 1) {
                     return new Result(ResultCode.R_PaymentFailed);
                 }
+                // 发送邮件通知付款成功
+                String email = queryUser.getUserEmail();
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setTo(email);
+                message.setSubject("付款成功通知");
+                message.setText("您已成功支付营地预定费用，预定信息如下：\n" +
+                        "预定ID: " + campgroundReservationId + "\n" +
+                        "开始日期: " + campgroundsReservations.getCampgroundReservationStartDate() + "\n" +
+                        "结束日期: " + campgroundsReservations.getCampgroundReservationEndDate() + "\n" +
+                        "总金额: " + campgroundTotalPrice + "\n" +
+                        "感谢您的支持，祝您旅途愉快！");
+                message.setFrom("2912528586@qq.com");
+                mailSender.send(message);
             }
         }
         return new Result(ResultCode.R_Ok);
@@ -220,6 +267,19 @@ public class UserPayServiceImpl implements UserPayService {
                 if (refund == null || refund < 5){
                     return new Result(ResultCode.R_UpdateDbFailed);
                 }
+                // 发送邮件通知退款成功
+                Users queryUser = userMapper.findByUserId(userId);
+                if (queryUser == null){ 
+                    return new Result(ResultCode.R_UserNotFound);
+                }
+                String email = queryUser.getUserEmail();
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setTo(email);
+                message.setSubject("退款成功通知");
+                message.setText("您已成功退款，退款金额为: " + refundPrice + "\n" +
+                        "感谢您的支持，祝您旅途愉快！");
+                message.setFrom("2912528586@qq.com");
+                mailSender.send(message);
             }
             case 1 -> {
                 Payments queryPayment = userPayMapper.findPaymentByCRId(reservationId);
@@ -255,6 +315,19 @@ public class UserPayServiceImpl implements UserPayService {
                 if (refund == null || refund < 5){
                     return new Result(ResultCode.R_UpdateDbFailed);
                 }
+                // 发送邮件通知退款成功
+                Users queryUser = userMapper.findByUserId(userId);
+                if (queryUser == null){ 
+                    return new Result(ResultCode.R_UserNotFound);
+                }
+                String email = queryUser.getUserEmail();
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setTo(email);
+                message.setSubject("退款成功通知");
+                message.setText("您已成功退款，退款金额为: " + refundPrice + "\n" +
+                        "感谢您的支持，祝您旅途愉快！");
+                message.setFrom("2912528586@qq.com");
+                mailSender.send(message);
             }
             default -> {
                 return new Result(ResultCode.R_Fail);

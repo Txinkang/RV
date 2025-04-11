@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.rv.Response.Result;
 import com.example.rv.pojo.Admin;
+import com.example.rv.pojo.UserQuestions;
 import com.example.rv.service.AdminService;
 
 @Validated
@@ -34,5 +35,20 @@ public class AdminController {
     @GetMapping("/dataAnalyze")
     public Result dataAnalyze() {
         return adminService.dataAnalyze();
+    }
+
+    @GetMapping("/questionsInfo")
+    public Result questionsInfo() {
+        return adminService.questionsInfo();
+    }
+
+    @PostMapping("/answer")
+    public Result answer(@RequestBody UserQuestions userQuestion) {
+        return adminService.answer(userQuestion);
+    }
+
+    @GetMapping("/getFeedback")
+    public Result getFeedback() {
+        return adminService.getFeedback();
     }
 }

@@ -2,6 +2,7 @@ package com.example.rv.service;
 
 import com.example.rv.Response.Result;
 import com.example.rv.pojo.Admin;
+import com.example.rv.pojo.UserQuestions;
 
 public interface AdminService {
     /**
@@ -19,4 +20,10 @@ public interface AdminService {
     Result logout(String token);
 
     Result dataAnalyze();
+
+    Result answer(UserQuestions userQuestion);
+
+    Result questionsInfo();
+
+    Result getFeedback();
 }

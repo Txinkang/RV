@@ -1,6 +1,7 @@
 package com.example.rv.service.Impl.admin;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -12,6 +13,8 @@ import com.example.rv.constData.MagicMathConstData;
 import com.example.rv.constData.RedisConstData;
 import com.example.rv.mapper.admin.AdminMapper;
 import com.example.rv.pojo.Admin;
+import com.example.rv.pojo.UserFeedback;
+import com.example.rv.pojo.UserQuestions;
 import com.example.rv.service.AdminService;
 import com.example.rv.service.common.RedisService;
 import com.example.rv.utils.JwtUtil;
@@ -92,4 +95,37 @@ public class AdminServiceImpl implements AdminService {
 
         return new Result(ResultCode.R_Ok, dataMap);
     }
+
+    @Override
+    public Result questionsInfo() {
+        // 获取所有问题
+        List<UserQuestions> questions = adminMapper.getQuestions();
+        return new Result(ResultCode.R_Ok, questions);
+    }
+
+    @Override
+    public Result answer(UserQuestions userQuestion) {
+        // 验证参数
+        if (userQuestion == null) {
+            return new Result(ResultCode.R_ParamError);
+        }
+        // 验证问题是否存在
+        UserQuestions question = adminMapper.getQuestionById(userQuestion.getUserQuestionId());
+        if (question == null) {
+            return new Result(ResultCode.R_Error);
+        }
+        // 回答问题
+        question.setUserQuestionAnswer(userQuestion.getUserQuestionAnswer());
+        question.setUserQuestionStatus(2);
+        int update = adminMapper.updateQuestion(question);
+        return new Result(update > 0 ? ResultCode.R_Ok : ResultCode.R_UpdateDbFailed);
+    }
+
+    @Override
+    public Result getFeedback() {
+        // 获取所有反馈
+        List<UserFeedback> feedbacks = adminMapper.getFeedbacks();
+        return new Result(ResultCode.R_Ok, feedbacks);
+    }
+
 }
